@@ -216,7 +216,6 @@
               <button id="projectile-node" class="hitbox-node" type="button">Projectile</button>
               <button id="velocity-node" class="hitbox-node" type="button">Velocity</button>
               <button id="sound-node" class="hitbox-node" type="button">Sound</button>
-              <button id="variable-node" class="hitbox-node" type="button">Variable</button>
               <button id="cancel-node" class="hitbox-node" type="button">Cancel</button>
             </section>
             <section class="move-node-properties" aria-label="Node Properties">
@@ -231,8 +230,8 @@
                     <span class="hitbox-preview-outline"></span>
                   </div>
                   <div class="hitbox-size-controls">
-                    <label class="axis-size-setting"><span>X size</span><input id="hitbox-size-x" type="range" min="16" max="400" step="1" value="100" aria-label="Hitbox X size slider" /><input id="hitbox-size-x-value" type="number" min="1" step="1" value="100" aria-label="Hitbox X size" /></label>
-                    <label class="axis-size-setting"><span>Y size</span><input id="hitbox-size-y" type="range" min="16" max="400" step="1" value="100" aria-label="Hitbox Y size slider" /><input id="hitbox-size-y-value" type="number" min="1" step="1" value="100" aria-label="Hitbox Y size" /></label>
+                    <label class="axis-size-setting"><span>X size</span><input id="hitbox-size-x" type="range" min="16" max="400" step="1" value="100" aria-label="Hitbox X size" /><output id="hitbox-size-x-value">100</output></label>
+                    <label class="axis-size-setting"><span>Y size</span><input id="hitbox-size-y" type="range" min="16" max="400" step="1" value="100" aria-label="Hitbox Y size" /><output id="hitbox-size-y-value">100</output></label>
                     <div class="hitbox-comparison-labels">
                       <span>Guy <b id="guy-size-value">100 × 100</b></span>
                       <span>Hitbox <b id="hitbox-size-label">100 × 100</b></span>
@@ -332,14 +331,6 @@
                   <input id="projectile-falloff" type="number" min="0" max="9999" step="0.1" value="0" />
                 </label>
               </div>
-              <div id="variable-properties" class="variable-properties" hidden>
-                <label class="hitbox-damage-setting">Variable:
-                  <input id="variable-value" type="text" autocomplete="off" />
-                </label>
-                <p class="variable-help">You can use this variable in any number or string properties by putting a $ symbol at the start.</p>
-                <label class="hitbox-anchored-setting"><input id="variable-remove" type="checkbox" />Remove</label>
-                <label class="hitbox-anchored-setting"><input id="variable-target-of-hitbox" type="checkbox" />Target of hitbox</label>
-              </div>
               <div id="cancel-properties" class="wait-properties" hidden>
                 <label class="hitbox-anchored-setting"><input id="cancel-never-repeat" type="checkbox" />Never repeat move</label>
                 <label class="wait-time-setting">Move Cooldown
@@ -388,7 +379,6 @@
                 <label class="hitbox-anchored-setting"><input id="velocity-track-enemy" type="checkbox" />Track enemy</label>
                 <label class="hitbox-anchored-setting"><input id="velocity-track-opposite" type="checkbox" />Track opposite</label>
                 <label class="hitbox-anchored-setting"><input id="velocity-changes-direction" type="checkbox" />Changes Movement Direction</label>
-                <label class="hitbox-anchored-setting"><input id="velocity-target-of-hitbox" type="checkbox" />Target of hitbox</label>
               </div>
               <div class="visual-properties" hidden>
                 <div id="visual-node-preview" class="visual-node-preview" role="img" aria-label="Visual node preview">
