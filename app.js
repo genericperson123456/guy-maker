@@ -67,7 +67,6 @@ const velocityRotationInput = document.querySelector('#velocity-rotation-value')
 const velocityTrackEnemyInput = document.querySelector('#velocity-track-enemy');
 const velocityTrackOppositeInput = document.querySelector('#velocity-track-opposite');
 const velocityChangesDirectionInput = document.querySelector('#velocity-changes-direction');
-const velocityTargetOfHitboxInput = document.querySelector('#velocity-target-of-hitbox');
 const hitboxDamageInput = document.querySelector('#hitbox-damage');
 const projectileIdInput = document.querySelector('#projectile-id');
 const projectileCancelIdInput = document.querySelector('#projectile-cancel-id');
@@ -121,11 +120,6 @@ const soundNodeVolumeValue = document.querySelector('#sound-node-volume-value');
 const soundNodeCancelInput = document.querySelector('#sound-node-cancel');
 const soundNodeStartInput = document.querySelector('#sound-node-start');
 const soundNodeFadeInput = document.querySelector('#sound-node-fade');
-const variableNodeButton = document.querySelector('#variable-node');
-const variableNodeDetails = document.querySelector('#variable-properties');
-const variableValueInput = document.querySelector('#variable-value');
-const variableRemoveInput = document.querySelector('#variable-remove');
-const variableTargetOfHitboxInput = document.querySelector('#variable-target-of-hitbox');
 const cancelNodeButton = document.querySelector('#cancel-node');
 const cancelNodeDetails = document.querySelector('#cancel-properties');
 const cancelNeverRepeatInput = document.querySelector('#cancel-never-repeat');
@@ -824,25 +818,19 @@ function updateHitboxPreview() {
   const node = draftNodes.find(item => item.id === selectedNodeId);
   if (!node || hitboxNodeDetails.hidden) return;
   const square = getSelectedGuySquare();
-  const width = Number(node.width);
-  const height = Number(node.height);
-  const previewWidth = Number.isFinite(width) ? width : square.size;
-  const previewHeight = Number.isFinite(height) ? height : square.size;
-  const largestDimension = Math.max(square.size, previewWidth, previewHeight);
+  const largestDimension = Math.max(square.size, node.width, node.height);
   const scale = Math.min(0.24, 56 / largestDimension);
   const previewSize = size => `${size * scale}px`;
   hitboxPreview.style.setProperty('--guy-preview-width', previewSize(square.size));
   hitboxPreview.style.setProperty('--guy-preview-height', previewSize(square.size));
-  hitboxPreview.style.setProperty('--hitbox-preview-width', previewSize(previewWidth));
-  hitboxPreview.style.setProperty('--hitbox-preview-height', previewSize(previewHeight));
-  hitboxPreview.style.setProperty('--hitbox-offset-x', `${(Number(node.x) || 0) * scale}px`);
-  hitboxPreview.style.setProperty('--hitbox-offset-y', `${(Number(node.y) || 0) * scale}px`);
-  hitboxPreview.style.setProperty('--hitbox-rotation', `${Number(node.rotation) || 0}deg`);
+  hitboxPreview.style.setProperty('--hitbox-preview-width', previewSize(node.width));
+  hitboxPreview.style.setProperty('--hitbox-preview-height', previewSize(node.height));
+  hitboxPreview.style.setProperty('--hitbox-offset-x', `${node.x * scale}px`);
+  hitboxPreview.style.setProperty('--hitbox-offset-y', `${node.y * scale}px`);
+  hitboxPreview.style.setProperty('--hitbox-rotation', `${node.rotation}deg`);
   hitboxPreview.style.setProperty('--guy-color', square.color);
-  hitboxSizeXValue.value = node.width;
-  hitboxSizeYValue.value = node.height;
-  hitboxSizeXInput.value = Math.max(Number(hitboxSizeXInput.min), Math.min(Number(hitboxSizeXInput.max), previewWidth));
-  hitboxSizeYInput.value = Math.max(Number(hitboxSizeYInput.min), Math.min(Number(hitboxSizeYInput.max), previewHeight));
+  hitboxSizeXValue.textContent = `${node.width}`;
+  hitboxSizeYValue.textContent = `${node.height}`;
   guySizeValue.textContent = `${square.size} × ${square.size}`;
   hitboxSizeLabel.textContent = `${node.width} × ${node.height}`;
 }
@@ -883,41 +871,6 @@ let nextMoveId = 1;
 let nextNodeId = 1;
 let draftNodes = [];
 let selectedNodeId = null;
-const variableNumberProperties = {
-  'hitbox-damage': 'damage', 'hitbox-size-x-value': 'width', 'hitbox-size-y-value': 'height',
-  'hitbox-position-x': 'x', 'hitbox-position-y': 'y', 'hitbox-rotation-value': 'rotation', 'hitbox-time': 'time',
-  'projectile-damage': 'damage', 'projectile-speed': 'speed', 'projectile-time': 'time', 'projectile-rotate-speed': 'rotateSpeed',
-  'projectile-rotation-value': 'rotation', 'projectile-hit-rate': 'hitRate', 'projectile-damage-deduction': 'damageDeduction',
-  'projectile-angle-offset': 'angleOffset', 'projectile-homing': 'homing', 'projectile-size': 'size', 'projectile-end-size': 'endSize',
-  'projectile-bounce-count': 'bounceCount', 'projectile-falloff': 'falloff', 'cancel-move-cooldown': 'moveCooldown',
-  'sound-node-start': 'start', 'wait-node-time': 'time', 'velocity-speed': 'speed', 'velocity-distance': 'distance',
-  'velocity-rotation-value': 'rotation', 'visual-node-scale': 'scale', 'visual-node-position-x': 'positionX',
-  'visual-node-position-y': 'positionY', 'visual-rotation-value': 'rotation', 'visual-node-speed': 'speed',
-  'visual-node-opacity': 'opacity', 'sprite-replace-time': 'time', 'sprite-replace-rotation': 'rotation',
-  'visual-node-time': 'time', 'visual-node-fade-in': 'fadeIn', 'visual-node-fade-out': 'fadeOut',
-};
-for (const id of Object.keys(variableNumberProperties)) {
-  const input = document.getElementById(id);
-  if (!input) continue;
-  input.type = 'text';
-  input.inputMode = 'decimal';
-  Object.defineProperty(input, 'valueAsNumber', {
-    configurable: true,
-    get() {
-      const value = this.value.trim();
-      return value === '' || value.startsWith('$') ? NaN : Number(value);
-    },
-  });
-}
-document.querySelector('.move-node-properties').addEventListener('input', event => {
-  const input = event.target;
-  const property = variableNumberProperties[input.id];
-  if (!property || !input.value.startsWith('$')) return;
-  const node = draftNodes.find(item => item.id === selectedNodeId);
-  if (!node) return;
-  node[property] = input.value;
-  event.stopImmediatePropagation();
-}, true);
 let editingMoveId = null;
 let moveReturnFocus = addMoveButton;
 
@@ -926,7 +879,7 @@ function renderTimeline() {
   draftNodes.forEach(node => {
     const nodeButton = document.createElement('button');
     nodeButton.type = 'button';
-    const nodeClass = node.type === 'cancel' ? 'cancel-timeline-node' : node.type === 'variable' ? 'variable-timeline-node' : node.type === 'sound' ? 'sound-timeline-node' : node.type === 'wait' ? 'wait-timeline-node' : node.type === 'visual' ? 'visual-timeline-node' : node.type === 'projectile' ? 'projectile-timeline-node' : node.type === 'velocity' ? 'velocity-timeline-node' : 'hitbox-timeline-node';
+    const nodeClass = node.type === 'cancel' ? 'cancel-timeline-node' : node.type === 'sound' ? 'sound-timeline-node' : node.type === 'wait' ? 'wait-timeline-node' : node.type === 'visual' ? 'visual-timeline-node' : node.type === 'projectile' ? 'projectile-timeline-node' : node.type === 'velocity' ? 'velocity-timeline-node' : 'hitbox-timeline-node';
     nodeButton.className = `timeline-node ${nodeClass}`;
     nodeButton.dataset.nodeId = node.id;
     nodeButton.textContent = getTimelineNodeLabel(node);
@@ -982,7 +935,6 @@ function removeSelectedNode() {
     visualNodeDetails.hidden = true;
     velocityNodeDetails.hidden = true;
     cancelNodeDetails.hidden = true;
-    variableNodeDetails.hidden = true;
   }
 }
 
@@ -993,7 +945,6 @@ function getTimelineNodeLabel(node) {
   if (node.type === 'visual') return `Visual [${node.visualType || 'Flash'}]`;
   if (node.type === 'velocity') return `Velocity [${node.speed ?? 300} / ${node.distance ?? 200}]`;
   if (node.type === 'cancel') return 'Cancel';
-  if (node.type === 'variable') return 'Variable';
   return `Wait [${node.time ?? 1}]`;
 }
 
@@ -1014,7 +965,6 @@ function selectTimelineNode(nodeId) {
   visualNodeDetails.hidden = node.type !== 'visual';
   velocityNodeDetails.hidden = node.type !== 'velocity';
   cancelNodeDetails.hidden = node.type !== 'cancel';
-  variableNodeDetails.hidden = node.type !== 'variable';
   timelineList.querySelectorAll('.timeline-node').forEach(button => {
     button.setAttribute('aria-pressed', String(Number(button.dataset.nodeId) === selectedNodeId));
   });
@@ -1045,15 +995,6 @@ function selectTimelineNode(nodeId) {
       if (Number.isFinite(start)) node.start = Math.max(0, start);
     };
     soundNodeFadeInput.onchange = () => { node.fade = soundNodeFadeInput.checked; };
-    return;
-  }
-  if (node.type === 'variable') {
-    variableValueInput.value = node.variable ?? '';
-    variableRemoveInput.checked = Boolean(node.remove);
-    variableTargetOfHitboxInput.checked = Boolean(node.targetOfHitbox);
-    variableValueInput.oninput = () => { node.variable = variableValueInput.value; };
-    variableRemoveInput.onchange = () => { node.remove = variableRemoveInput.checked; };
-    variableTargetOfHitboxInput.onchange = () => { node.targetOfHitbox = variableTargetOfHitboxInput.checked; };
     return;
   }
   if (node.type === 'cancel') {
@@ -1087,7 +1028,6 @@ function selectTimelineNode(nodeId) {
     velocityTrackEnemyInput.checked = Boolean(node.trackEnemy);
     velocityTrackOppositeInput.checked = Boolean(node.trackOpposite);
     velocityChangesDirectionInput.checked = Boolean(node.changesDirection);
-    velocityTargetOfHitboxInput.checked = Boolean(node.targetOfHitbox);
     velocitySpeedInput.oninput = () => {
       const value = velocitySpeedInput.valueAsNumber;
       if (!Number.isFinite(value)) return;
@@ -1115,7 +1055,6 @@ function selectTimelineNode(nodeId) {
       }
     };
     velocityChangesDirectionInput.onchange = () => { node.changesDirection = velocityChangesDirectionInput.checked; };
-    velocityTargetOfHitboxInput.onchange = () => { node.targetOfHitbox = velocityTargetOfHitboxInput.checked; };
     return;
   }
   if (node.type === 'projectile') {
@@ -1393,10 +1332,8 @@ function selectTimelineNode(nodeId) {
   hitboxDamageInput.value = node.damage;
   hitboxTimeInput.value = node.time ?? 0.05;
   hitboxAnchoredInput.checked = Boolean(node.anchored);
-  hitboxSizeXValue.value = node.width;
-  hitboxSizeYValue.value = node.height;
-  hitboxSizeXInput.value = Math.max(Number(hitboxSizeXInput.min), Math.min(Number(hitboxSizeXInput.max), node.width));
-  hitboxSizeYInput.value = Math.max(Number(hitboxSizeYInput.min), Math.min(Number(hitboxSizeYInput.max), node.height));
+  hitboxSizeXInput.value = node.width;
+  hitboxSizeYInput.value = node.height;
   hitboxPositionXInput.value = node.x;
   hitboxPositionYInput.value = node.y;
   hitboxSoundInput.value = '';
@@ -1418,7 +1355,7 @@ function selectTimelineNode(nodeId) {
     node.y = Number(hitboxPositionYInput.value) || 0;
     updateHitboxPreview();
   };
-  if (!Number.isFinite(node.rotation) && !(typeof node.rotation === 'string' && node.rotation.startsWith('$'))) node.rotation = 0;
+  node.rotation = Number.isFinite(node.rotation) ? node.rotation : 0;
   updateRotationDial(node.rotation);
   hitboxSoundInput.onchange = () => {
     const file = hitboxSoundInput.files?.[0];
@@ -1435,38 +1372,21 @@ function selectTimelineNode(nodeId) {
   };
   hitboxSizeXInput.oninput = () => {
     node.width = Number(hitboxSizeXInput.value);
-    hitboxSizeXValue.value = node.width;
     updateHitboxPreview();
   };
   hitboxSizeYInput.oninput = () => {
     node.height = Number(hitboxSizeYInput.value);
-    hitboxSizeYValue.value = node.height;
     updateHitboxPreview();
   };
-  hitboxSizeXValue.oninput = () => {
-    const value = hitboxSizeXValue.valueAsNumber;
-    if (!Number.isFinite(value) || value < 1) return;
-    node.width = value;
-    updateHitboxPreview();
-  };
-  hitboxSizeYValue.oninput = () => {
-    const value = hitboxSizeYValue.valueAsNumber;
-    if (!Number.isFinite(value) || value < 1) return;
-    node.height = value;
-    updateHitboxPreview();
-  };
-  hitboxSizeXValue.onchange = () => { if (!Number.isFinite(hitboxSizeXValue.valueAsNumber) || hitboxSizeXValue.valueAsNumber < 1) hitboxSizeXValue.value = node.width; };
-  hitboxSizeYValue.onchange = () => { if (!Number.isFinite(hitboxSizeYValue.valueAsNumber) || hitboxSizeYValue.valueAsNumber < 1) hitboxSizeYValue.value = node.height; };
   updateHitboxPreview();
 }
 
 function updateRotationDial(value) {
-  const numericValue = Number(value);
-  const degrees = Number.isFinite(numericValue) ? ((Math.round(numericValue) % 360) + 360) % 360 : 0;
+  const degrees = ((Math.round(value) % 360) + 360) % 360;
   hitboxRotationDial.style.setProperty('--dial-angle', `${degrees}deg`);
   hitboxRotationDial.setAttribute('aria-valuenow', String(degrees));
   hitboxRotationDial.setAttribute('aria-valuetext', `${degrees} degrees`);
-  if (!(typeof value === 'string' && value.startsWith('$'))) hitboxRotationValue.value = String(degrees);
+  hitboxRotationValue.value = String(degrees);
 }
 
 function updateNodeRotation(node, value) {
@@ -1476,12 +1396,11 @@ function updateNodeRotation(node, value) {
 }
 
 function updateProjectileRotationDial(value) {
-  const numericValue = Number(value);
-  const degrees = Number.isFinite(numericValue) ? ((Math.round(numericValue) % 360) + 360) % 360 : 0;
+  const degrees = ((Math.round(value) % 360) + 360) % 360;
   projectileRotationDial.style.setProperty('--dial-angle', `${degrees}deg`);
   projectileRotationDial.setAttribute('aria-valuenow', String(degrees));
   projectileRotationDial.setAttribute('aria-valuetext', `${degrees} degrees`);
-  if (!(typeof value === 'string' && value.startsWith('$'))) projectileRotationInput.value = String(degrees);
+  projectileRotationInput.value = String(degrees);
 }
 
 function updateProjectileRotation(node, value) {
@@ -1490,12 +1409,11 @@ function updateProjectileRotation(node, value) {
 }
 
 function updateVelocityRotationDial(value) {
-  const numericValue = Number(value);
-  const degrees = Number.isFinite(numericValue) ? ((Math.round(numericValue) % 360) + 360) % 360 : 0;
+  const degrees = ((Math.round(value) % 360) + 360) % 360;
   velocityRotationDial.style.setProperty('--dial-angle', `${degrees}deg`);
   velocityRotationDial.setAttribute('aria-valuenow', String(degrees));
   velocityRotationDial.setAttribute('aria-valuetext', `${degrees} degrees`);
-  if (!(typeof value === 'string' && value.startsWith('$'))) velocityRotationInput.value = String(degrees);
+  velocityRotationInput.value = String(degrees);
 }
 
 function updateVelocityRotation(node, value) {
@@ -1504,12 +1422,11 @@ function updateVelocityRotation(node, value) {
 }
 
 function updateVisualRotationDial(value) {
-  const numericValue = Number(value);
-  const degrees = Number.isFinite(numericValue) ? ((Math.round(numericValue) % 360) + 360) % 360 : 0;
+  const degrees = ((Math.round(value) % 360) + 360) % 360;
   visualRotationDial.style.setProperty('--dial-angle', `${degrees}deg`);
   visualRotationDial.setAttribute('aria-valuenow', String(degrees));
   visualRotationDial.setAttribute('aria-valuetext', `${degrees} degrees`);
-  if (!(typeof value === 'string' && value.startsWith('$'))) visualRotationValue.value = String(degrees);
+  visualRotationValue.value = String(degrees);
 }
 
 function updateVisualRotation(node, value) {
@@ -1662,7 +1579,6 @@ function addHitboxNode() {
   visualNodeDetails.hidden = true;
   velocityNodeDetails.hidden = true;
   cancelNodeDetails.hidden = true;
-    variableNodeDetails.hidden = true;
   renderTimeline();
 }
 
@@ -1703,7 +1619,6 @@ projectileNodeButton.addEventListener('click', () => {
   visualNodeDetails.hidden = true;
   velocityNodeDetails.hidden = true;
   cancelNodeDetails.hidden = true;
-    variableNodeDetails.hidden = true;
   renderTimeline();
 });
 velocityNodeButton.addEventListener('click', () => {
@@ -1725,7 +1640,6 @@ velocityNodeButton.addEventListener('click', () => {
   visualNodeDetails.hidden = true;
   velocityNodeDetails.hidden = true;
   cancelNodeDetails.hidden = true;
-    variableNodeDetails.hidden = true;
   renderTimeline();
 });
 soundNodeButton.addEventListener('click', () => {
@@ -1738,20 +1652,6 @@ soundNodeButton.addEventListener('click', () => {
   visualNodeDetails.hidden = true;
   velocityNodeDetails.hidden = true;
   cancelNodeDetails.hidden = true;
-    variableNodeDetails.hidden = true;
-  renderTimeline();
-});
-variableNodeButton.addEventListener('click', () => {
-  draftNodes.push({ id: nextNodeId++, type: 'variable', variable: '', remove: false, targetOfHitbox: false });
-  selectedNodeId = null;
-  hitboxNodeDetails.hidden = true;
-  projectileNodeDetails.hidden = true;
-  soundNodeDetails.hidden = true;
-  waitNodeDetails.hidden = true;
-  visualNodeDetails.hidden = true;
-  velocityNodeDetails.hidden = true;
-  cancelNodeDetails.hidden = true;
-  variableNodeDetails.hidden = true;
   renderTimeline();
 });
 cancelNodeButton.addEventListener('click', () => {
@@ -1764,7 +1664,6 @@ cancelNodeButton.addEventListener('click', () => {
   visualNodeDetails.hidden = true;
   velocityNodeDetails.hidden = true;
   cancelNodeDetails.hidden = true;
-    variableNodeDetails.hidden = true;
   renderTimeline();
 });
 waitNodeButton.addEventListener('click', () => {
@@ -1777,7 +1676,6 @@ waitNodeButton.addEventListener('click', () => {
   visualNodeDetails.hidden = true;
   velocityNodeDetails.hidden = true;
   cancelNodeDetails.hidden = true;
-    variableNodeDetails.hidden = true;
   renderTimeline();
 });
 visualNodeButton.addEventListener('click', () => {
@@ -1790,7 +1688,6 @@ visualNodeButton.addEventListener('click', () => {
   visualNodeDetails.hidden = true;
   velocityNodeDetails.hidden = true;
   cancelNodeDetails.hidden = true;
-    variableNodeDetails.hidden = true;
   renderTimeline();
 });
 categorySelect.addEventListener('change', updateHitboxPreview);
@@ -1861,7 +1758,6 @@ function applyMoveToEditor(move) {
   visualNodeDetails.hidden = true;
   velocityNodeDetails.hidden = true;
   cancelNodeDetails.hidden = true;
-    variableNodeDetails.hidden = true;
   updateMoveCondition();
 }
 
@@ -1958,26 +1854,8 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
   const nodes = move.nodes ?? [];
   const pendingTimelineCompletions = [];
   const pendingHitResolutions = [];
-  let currentVariable = null;
   for (let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
-    const sourceNode = nodes[nodeIndex];
-    if (sourceNode.type === 'variable') {
-      if (sourceNode.targetOfHitbox) {
-        const hitIndex = await lastHitResolution;
-        if (hitIndex === null || moveWasStopped()) continue;
-      }
-      if (moveWasStopped()) return;
-      currentVariable = sourceNode.remove ? null : String(sourceNode.variable ?? '');
-      continue;
-    }
-    const node = { ...sourceNode };
-    if (currentVariable !== null) {
-      for (const [property, value] of Object.entries(node)) {
-        if (typeof value === 'string' && value.startsWith('$')) {
-          node[property] = currentVariable + value.slice(1);
-        }
-      }
-    }
+    const node = nodes[nodeIndex];
     if (moveWasStopped()) return;
     if (!preview && isPreviewingMove) return;
     if (!preview && attacker.health <= 0) return;
@@ -2020,59 +1898,47 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       return;
     }
     if (node.type === 'velocity') {
-      const startVelocityMovement = moverIndex => {
-        const mover = squares[moverIndex];
-        const opponent = squares[moverIndex === 0 ? 1 : 0];
-        const speed = Math.max(1, Math.min(3000, Number(node.speed) || 300));
-        const distance = Math.max(0, Math.min(5000, Number(node.distance) || 0));
-        if (distance <= 0 || !mover) return Promise.resolve(false);
-        // Retire an older move on the same guy before saving the new movement state.
-        for (let index = activeVelocityMoves.length - 1; index >= 0; index--) {
-          const activeMove = activeVelocityMoves[index];
-          if (activeMove.squareIndex !== moverIndex) continue;
-          activeVelocityMoves.splice(index, 1);
-          mover.vx = activeMove.previousVx;
-          mover.vy = activeMove.previousVy;
-          mover.speed = activeMove.previousSpeed;
-          activeMove.complete?.(false);
-        }
-        const direction = node.trackEnemy
-          ? Math.atan2(opponent.y - mover.y, opponent.x - mover.x)
-          : node.trackOpposite
-            ? Math.atan2(-mover.vy, -mover.vx)
-          : (Number(node.rotation ?? 90) - 90) * Math.PI / 180;
-        const movement = {
-          squareIndex: moverIndex,
-          direction,
-          speed,
-          distance,
-          travelled: 0,
-          lastX: mover.x,
-          lastY: mover.y,
-          previousVx: mover.vx,
-          previousVy: mover.vy,
-          previousSpeed: mover.speed,
-          preview,
-          changesDirection: Boolean(node.changesDirection),
-          complete: null,
-        };
-        mover.vx = Math.cos(direction) * speed;
-        mover.vy = Math.sin(direction) * speed;
-        mover.speed = speed;
-        const movementResolution = new Promise(resolve => { movement.complete = resolve; });
-        activeVelocityMoves.push(movement);
-        return movementResolution;
-      };
-      if (node.targetOfHitbox) {
-        const targetMovement = lastHitResolution.then(hitIndex => {
-          if (hitIndex === null || moveWasStopped()) return false;
-          return startVelocityMovement(hitIndex);
-        });
-        if (preview) pendingTimelineCompletions.push(targetMovement);
-      } else {
-        const movement = startVelocityMovement(attackerIndex);
-        if (preview) pendingTimelineCompletions.push(movement);
+      const speed = Math.max(1, Math.min(3000, Number(node.speed) || 300));
+      const distance = Math.max(0, Math.min(5000, Number(node.distance) || 0));
+      if (distance <= 0) continue;
+      // A guy can be hit again while a prior velocity node is still running.
+      // Retire that movement first so its saved velocity cannot be restored
+      // later over the newer node's state.
+      for (let index = activeVelocityMoves.length - 1; index >= 0; index--) {
+        const activeMove = activeVelocityMoves[index];
+        if (activeMove.squareIndex !== attackerIndex) continue;
+        activeVelocityMoves.splice(index, 1);
+        attacker.vx = activeMove.previousVx;
+        attacker.vy = activeMove.previousVy;
+        attacker.speed = activeMove.previousSpeed;
+        activeMove.complete?.(false);
       }
+      const direction = node.trackEnemy
+        ? Math.atan2(target.y - attacker.y, target.x - attacker.x)
+        : node.trackOpposite
+          ? Math.atan2(-attacker.vy, -attacker.vx)
+        : (Number(node.rotation ?? 90) - 90) * Math.PI / 180;
+      const movement = {
+        squareIndex: attackerIndex,
+        direction,
+        speed,
+        distance,
+        travelled: 0,
+        lastX: attacker.x,
+        lastY: attacker.y,
+        previousVx: attacker.vx,
+        previousVy: attacker.vy,
+        previousSpeed: attacker.speed,
+        preview,
+        changesDirection: Boolean(node.changesDirection),
+        complete: null,
+      };
+      attacker.vx = Math.cos(direction) * speed;
+      attacker.vy = Math.sin(direction) * speed;
+      attacker.speed = speed;
+      const movementResolution = new Promise(resolve => { movement.complete = resolve; });
+      if (preview) pendingTimelineCompletions.push(movementResolution);
+      activeVelocityMoves.push(movement);
       continue;
     }
     if (node.type === 'visual') {
@@ -2143,7 +2009,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       };
       if (visualType !== 'Overlay' && node.targetOfHitbox) {
         lastHitResolution.then(hitIndex => {
-          if (hitIndex !== null && !previewState?.cancelled && (matchEnded || generation === matchGeneration)) launchVisual(hitIndex);
+          if (hitIndex !== null && !moveWasStopped()) launchVisual(hitIndex);
         });
       } else {
         launchVisual(attackerIndex);
@@ -2451,6 +2317,7 @@ function finishMatch() {
   startButton.disabled = true;
   pauseButton.disabled = true;
   damagePopups.length = 0;
+  activeVisuals.length = 0;
   for (const sound of activeSoundNodes) {
     clearInterval(sound.fadeTimer);
     sound.fadeTimer = null;
@@ -2469,6 +2336,17 @@ function finishMatch() {
     hitbox.complete?.(false);
   }
   activeHitboxes.length = 0;
+  for (const movement of activeVelocityMoves) {
+    const square = squares[movement.squareIndex];
+    if (square) {
+      square.vx = movement.previousVx;
+      square.vy = movement.previousVy;
+      square.speed = movement.previousSpeed;
+    }
+    movement.complete?.(false);
+  }
+  activeVelocityMoves.length = 0;
+  for (const square of squares) square.spriteReplace = null;
   resetMoveTimers();
   clearTimeout(winSpriteTimer);
   winSpriteTimer = setTimeout(() => {
@@ -3378,14 +3256,14 @@ function updateActiveVelocityMoves(dt) {
 }
 
 function draw(time) {
-  const dt = isRunning || isPreviewingMove || matchEnded ? Math.min((time - lastTime) / 1000 || 0, 0.032) * gameSpeed : 0;
+  const dt = isRunning || isPreviewingMove ? Math.min((time - lastTime) / 1000 || 0, 0.032) * gameSpeed : 0;
   lastTime = time;
   simulationTime += dt;
   ctx.clearRect(0, 0, width, height);
   drawArenaWatermark(time);
 
-  if (isRunning || matchEnded) {
-    if (isRunning) advanceMetronomeMoves(dt);
+  if (isRunning) {
+    advanceMetronomeMoves(dt);
     for (let index = 0; index < squares.length; index++) {
       const square = squares[index];
       if (square.health <= 0) continue;
@@ -3415,12 +3293,10 @@ function draw(time) {
         playWallBounceSound();
       }
     }
-    if (isRunning) {
-      const collision = resolveGuyCollision();
-      if (collision) {
-        runMovesForCondition(0, 'collision', collision.sideA);
-        runMovesForCondition(1, 'collision', collision.sideB);
-      }
+    const collision = resolveGuyCollision();
+    if (collision) {
+      runMovesForCondition(0, 'collision', collision.sideA);
+      runMovesForCondition(1, 'collision', collision.sideB);
     }
   }
 
