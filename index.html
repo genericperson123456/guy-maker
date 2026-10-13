@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f4f4f1" />
+    <link rel="icon" href="data:," />
     <title>Guy Maker</title>
     <link rel="icon" type="image/png" href="./gravityguy.png">
     <link rel="stylesheet" href="./style.css" />
@@ -11,7 +12,7 @@
   </head>
   <body>
     <aside class="maker-panel" aria-label="Guy Creator">
-      <h2>Guy Creator</h2>
+      <div class="creator-heading"><button id="guy-export-button" type="button">Import</button><h2>Guy Creator</h2><button id="guy-import-button" type="button">Export</button><input id="guy-import-file" type="file" accept=".txt,text/plain,application/json" hidden /></div>
       <select id="guy-category-select" class="category-select" aria-label="Select a guy">
         <option value="guy-one">Guy 1</option>
         <option value="guy-two">Guy 2</option>
@@ -216,6 +217,8 @@
               <button id="projectile-node" class="hitbox-node" type="button">Projectile</button>
               <button id="velocity-node" class="hitbox-node" type="button">Velocity</button>
               <button id="sound-node" class="hitbox-node" type="button">Sound</button>
+              <button id="variable-node" class="hitbox-node" type="button">Variable</button>
+              <button id="skip-node" class="hitbox-node" type="button">Skip</button>
               <button id="cancel-node" class="hitbox-node" type="button">Cancel</button>
             </section>
             <section class="move-node-properties" aria-label="Node Properties">
@@ -226,7 +229,7 @@
                 </label>
                 <div class="hitbox-size-editor">
                   <div id="hitbox-preview" class="hitbox-preview" aria-label="Hitbox dimensions compared with the selected guy">
-                    <span class="hitbox-preview-square"></span>
+                    <span class="hitbox-preview-square"><img id="hitbox-preview-guy-image" alt="" hidden /></span>
                     <span class="hitbox-preview-outline"></span>
                   </div>
                   <div class="hitbox-size-controls">
@@ -331,6 +334,31 @@
                   <input id="projectile-falloff" type="number" min="0" max="9999" step="0.1" value="0" />
                 </label>
               </div>
+              <div id="variable-properties" class="variable-properties" hidden>
+                <label class="hitbox-damage-setting">Variable:
+                  <input id="variable-value" type="text" autocomplete="off" />
+                </label>
+                <label class="hitbox-damage-setting">Value
+                  <input id="variable-data-value" type="text" autocomplete="off" />
+                </label>
+                <p class="variable-help">You can use this variable in any number or string properties by putting a $ symbol at the start.</p>
+                <label class="hitbox-anchored-setting"><input id="variable-math" type="checkbox" />Math</label>
+                <p class="variable-help">Allows math in the value when it contains only numbers. Supported operations: + (addition), - (subtraction), x (multiplication), and : (division).</p>
+                <label class="hitbox-anchored-setting"><input id="variable-remove" type="checkbox" />Remove</label>
+                <label class="hitbox-anchored-setting"><input id="variable-target-of-hitbox" type="checkbox" />Target of hitbox</label>
+                <div id="variable-hitbox-target-picker" class="node-target-picker" hidden></div>
+              </div>
+              <div id="skip-properties" class="wait-properties" hidden>
+                <span class="skip-property-label">Node</span>
+                <button id="skip-node-target" class="node-target-button" type="button">Select node</button>
+                <div id="skip-node-target-picker" class="node-target-picker" hidden></div>
+                <div id="skip-node-selected" class="node-target-selected">No node selected</div>
+                <label class="sound-cancel-setting"><input id="skip-after-hit-landed" type="checkbox" />After Hit Landed</label>
+                <div id="skip-hitbox-target-picker" class="node-target-picker" hidden></div>
+                <label class="hitbox-damage-setting">If variable
+                  <span class="skip-variable-fields"><input id="skip-variable-name" type="text" placeholder="Variable name" /><input id="skip-variable-value" type="text" placeholder="Value" /></span>
+                </label>
+              </div>
               <div id="cancel-properties" class="wait-properties" hidden>
                 <label class="hitbox-anchored-setting"><input id="cancel-never-repeat" type="checkbox" />Never repeat move</label>
                 <label class="wait-time-setting">Move Cooldown
@@ -361,7 +389,8 @@
                   <input id="wait-node-time" type="number" min="0" step="0.1" value="1" />
                   <span>seconds</span>
                 </label>
-                <label class="sound-cancel-setting"><input id="wait-node-after-damage" type="checkbox" />After Damage</label>
+                <label class="sound-cancel-setting"><input id="wait-node-after-damage" type="checkbox" />After Hit Landed</label>
+                <div id="wait-hitbox-target-picker" class="node-target-picker" hidden></div>
               </div>
               <div id="velocity-properties" class="velocity-properties" hidden>
                 <label class="hitbox-damage-setting">Speed
@@ -380,6 +409,7 @@
                 <label class="hitbox-anchored-setting"><input id="velocity-track-opposite" type="checkbox" />Track opposite</label>
                 <label class="hitbox-anchored-setting"><input id="velocity-changes-direction" type="checkbox" />Changes Movement Direction</label>
                 <label class="hitbox-anchored-setting"><input id="velocity-target-of-hitbox" type="checkbox" />Target of hitbox</label>
+                <div id="velocity-hitbox-target-picker" class="node-target-picker" hidden></div>
               </div>
               <div class="visual-properties" hidden>
                 <div id="visual-node-preview" class="visual-node-preview" role="img" aria-label="Visual node preview">
@@ -429,6 +459,7 @@
                   <input id="visual-node-opacity" type="number" min="0" max="200" step="1" value="50" />
                 </label>
                 <label id="visual-target-of-hitbox-setting" class="visual-towards-setting"><input id="visual-node-target-of-hitbox" type="checkbox" /> Target of hitbox</label>
+                <div id="visual-hitbox-target-picker" class="node-target-picker" hidden></div>
                 <label class="hitbox-damage-setting">Spawn at projectile
                   <input id="visual-node-spawn-at-projectile" type="text" placeholder="Projectile ID" />
                 </label>
@@ -466,6 +497,8 @@
           <button id="move-node-up" class="move-node-order" type="button" aria-label="Move selected node up" disabled>↑</button>
           <button id="move-node-down" class="move-node-order" type="button" aria-label="Move selected node down" disabled>↓</button>
           <button id="duplicate-node" class="move-node-order" type="button" aria-label="Duplicate selected node" title="Duplicate selected node" disabled>⧉</button>
+          <button id="undo-node" class="move-node-order" type="button" aria-label="Undo last action" title="Undo last action" disabled>↶</button>
+          <button id="copy-node" class="move-node-order" type="button" aria-label="Copy selected node" title="Copy selected node" disabled>Copy</button>
           <button id="remove-node" class="move-node-order remove-node" type="button" aria-label="Remove selected node" title="Remove selected node" disabled>−</button>
           <button id="preview-move" class="preview-move" type="button" disabled>Preview</button>
           <button id="finish-move" class="finish-move" type="button">Finish</button>
