@@ -851,9 +851,6 @@ body.watermark-mode {
 }
 .timeline-node.velocity-timeline-node:hover { background: #4d9847; }
 .timeline-node.velocity-timeline-node:active { box-shadow: 0 1px 0 #3c7838; }
-.timeline-node.variable-timeline-node { border-color: #b69016; color: #3e351a; background: #f0ce4d; box-shadow: 0 3px 0 #b69016; }
-.timeline-node.variable-timeline-node:hover { background: #e4bf37; }
-.timeline-node.variable-timeline-node:active { box-shadow: 0 1px 0 #b69016; }
 
 .move-editor-workspace h3 {
   margin: 0;
@@ -938,9 +935,6 @@ body.watermark-mode {
 .wait-properties[hidden] { display: none; }
 .velocity-properties { display: grid; gap: 12px; margin-top: 12px; }
 .velocity-properties[hidden] { display: none; }
-.variable-properties { display: grid; gap: 12px; margin-top: 12px; }
-.variable-properties[hidden] { display: none; }
-.variable-help { margin: 0; color: #777872; font-size: 10px; line-height: 1.45; }
 .visual-properties { display: grid; gap: 12px; margin-top: 12px; }
 .visual-properties[hidden] { display: none; }
 .visual-properties > .wait-time-setting[hidden] { display: none; }
@@ -1257,10 +1251,8 @@ body.watermark-mode {
   font: 500 11px 'DM Sans', sans-serif;
 }
 
-.projectile-properties > .hitbox-damage-setting #projectile-id,
-.projectile-properties > .hitbox-damage-setting #projectile-cancel-id,
-.projectile-properties > .hitbox-damage-setting #projectile-spawn-at-id,
-.visual-properties > .hitbox-damage-setting #visual-node-spawn-at-projectile {
+.projectile-properties > .hitbox-damage-setting input[type="text"],
+.visual-properties > .hitbox-damage-setting input[type="text"] {
   width: 132px;
 }
 
@@ -1461,24 +1453,14 @@ body.watermark-mode {
 
 .axis-size-setting {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 58px;
+  grid-template-columns: 34px minmax(0, 1fr) 25px;
   align-items: center;
   gap: 4px;
   color: #454640;
   font-size: 9px;
 }
 
-.axis-size-setting input[type="number"] {
-  width: 100%;
-  min-width: 0;
-  height: 24px;
-  padding: 0 4px;
-  border: 1px solid #deded8;
-  border-radius: 0;
-  color: #20211f;
-  background: #fbfbf9;
-  font: 500 9px 'DM Mono', monospace;
-}
+.axis-size-setting output { color: #20211f; font: 500 9px 'DM Mono', monospace; text-align: right; }
 
 .hitbox-size-controls input[type="range"] {
   display: block;
@@ -1570,9 +1552,6 @@ body.watermark-mode {
 .bottom-bar { padding: 13px 2px 0; color: #8b8c85; }
 .coordinates { color: #b0b1aa; }
 
-#variable-node { border-color: #b69016; background: #f0ce4d; color: #3e351a; box-shadow: 0 3px 0 #b69016; }
-#variable-node:hover { background: #e4bf37; }
-#variable-node:active { box-shadow: 0 1px 0 #b69016; }
 #cancel-node { border-color: #393a38; background: #575956; box-shadow: 0 3px 0 #393a38; }
 #cancel-node:hover { background: #484a47; }
 #cancel-node:active { box-shadow: 0 1px 0 #393a38; }
