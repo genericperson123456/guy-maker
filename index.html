@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f4f1" />
+    <title>Guy Maker</title>
+    <link rel="icon" type="image/png" href="./gravityguy.png">
+    <link rel="stylesheet" href="./style.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <aside class="maker-panel" aria-label="Guy Creator">
+      <h2>Guy Creator</h2>
+      <select id="guy-category-select" class="category-select" aria-label="Select a guy">
+        <option value="guy-one">Guy 1</option>
+        <option value="guy-two">Guy 2</option>
+      </select>
+      <select id="editor-category-select" class="category-select" aria-label="Select a category">
+        <option value="sprites">Sprites</option>
+        <option value="statistics">Statistics</option>
+        <option value="moves">Moves</option>
+      </select>
+      <section class="editor-page" id="sprites-page">
+        <section class="guy-category" id="guy-one" aria-labelledby="guy-one-label">
+          <h3 id="guy-one-label">Idle Sprite</h3>
+          <div class="sprite-upload-row">
+            <div class="sprite-upload-control"><input id="guy-one-upload" type="file" accept="image/png,image/jpeg,image/gif" /><label class="upload-button" for="guy-one-upload">Insert Image</label></div>
+            <img id="guy-one-preview" class="sprite-upload-preview" alt="Idle sprite preview" hidden />
+          </div>
+          <label class="hitbox-toggle"><input id="guy-one-eye-contact" type="checkbox" checked />Flip for enemy eye contact</label>
+          <label id="guy-one-eye-contact-reverse-setting" class="hitbox-toggle"><input id="guy-one-eye-contact-reverse" type="checkbox" />Reverse</label>
+          <label class="hitbox-toggle"><input id="guy-one-eye-contact-hitbox" type="checkbox" />Affects hitbox</label>
+          <h3 class="sprite-setting-title" id="guy-one-win-label">Win Sprite</h3>
+          <div class="sprite-upload-row">
+            <div class="sprite-upload-control"><input id="guy-one-win-upload" type="file" accept="image/png,image/jpeg,image/gif" /><label class="upload-button" for="guy-one-win-upload">Insert Image</label></div>
+            <img id="guy-one-win-preview" class="sprite-upload-preview" alt="Win sprite preview" hidden />
+          </div>
+          <label class="hitbox-toggle"><input id="guy-one-hitbox" type="checkbox" />Hitbox matches image</label>
+          <label class="sprite-number-setting">Rotate Speed<input id="guy-one-rotate-speed" type="number" min="-3600" max="3600" step="1" value="0" /></label>
+        </section>
+        <section class="guy-category" id="guy-two" aria-labelledby="guy-two-label" hidden>
+          <h3 id="guy-two-label">Idle Sprite</h3>
+          <div class="sprite-upload-row">
+            <div class="sprite-upload-control"><input id="guy-two-upload" type="file" accept="image/png,image/jpeg,image/gif" /><label class="upload-button" for="guy-two-upload">Insert Image</label></div>
+            <img id="guy-two-preview" class="sprite-upload-preview" alt="Idle sprite preview" hidden />
+          </div>
+          <label class="hitbox-toggle"><input id="guy-two-eye-contact" type="checkbox" checked />Flip for enemy eye contact</label>
+          <label id="guy-two-eye-contact-reverse-setting" class="hitbox-toggle"><input id="guy-two-eye-contact-reverse" type="checkbox" />Reverse</label>
+          <label class="hitbox-toggle"><input id="guy-two-eye-contact-hitbox" type="checkbox" />Affects hitbox</label>
+          <h3 class="sprite-setting-title" id="guy-two-win-label">Win Sprite</h3>
+          <div class="sprite-upload-row">
+            <div class="sprite-upload-control"><input id="guy-two-win-upload" type="file" accept="image/png,image/jpeg,image/gif" /><label class="upload-button" for="guy-two-win-upload">Insert Image</label></div>
+            <img id="guy-two-win-preview" class="sprite-upload-preview" alt="Win sprite preview" hidden />
+          </div>
+          <label class="hitbox-toggle"><input id="guy-two-hitbox" type="checkbox" />Hitbox matches image</label>
+          <label class="sprite-number-setting">Rotate Speed<input id="guy-two-rotate-speed" type="number" min="-3600" max="3600" step="1" value="0" /></label>
+        </section>
+      </section>
+      <section class="editor-page" id="statistics-page" hidden>
+        <div class="guy-stats" id="guy-one-stats">
+          <label>Health<input type="number" min="0" max="9999" step="1" placeholder="1000" data-stat="health" /></label>
+          <label>Speed<input type="number" min="1" max="1000" step="1" placeholder="246" data-stat="speed" /></label>
+          <label>Size<input type="number" min="16" max="240" step="1" placeholder="100" data-stat="size" /></label>
+        </div>
+        <div class="guy-stats" id="guy-two-stats" hidden>
+          <label>Health<input type="number" min="0" max="9999" step="1" placeholder="1000" data-stat="health" /></label>
+          <label>Speed<input type="number" min="1" max="1000" step="1" placeholder="246" data-stat="speed" /></label>
+          <label>Size<input type="number" min="16" max="240" step="1" placeholder="100" data-stat="size" /></label>
+        </div>
+      </section>
+      <section class="editor-page" id="moves-page" aria-label="Moves" hidden>
+        <label class="hitbox-toggle"><input id="stack-moves" type="checkbox" checked />Stack Moves</label>
+        <label class="hitbox-toggle"><input id="moves-self-stack" type="checkbox" checked />Moves Self Stack</label>
+        <h3>Moves</h3>
+        <div id="moves-list" class="moves-list" aria-live="polite"></div>
+        <button id="add-move-button" class="add-move-button" type="button">Add new move</button>
+      </section>
+    </aside>
+    <main class="stage">
+      <div class="arena-placeholder-actions" aria-label="Arena buttons">
+        <button id="watermark-button" class="arena-placeholder-button" type="button" aria-label="Add watermark" title="View Mode"><img src="./uploads/image.png" alt="" /></button>
+        <button id="background-color-button" class="arena-placeholder-button" type="button" aria-label="Choose arena background color" aria-expanded="false" title="Background color"><img src="./uploads/image-2.png" alt="" /></button>
+        <button id="speed-button" class="arena-placeholder-button" type="button" aria-label="Game speed: 1×" aria-pressed="false" data-speed="1" title="Game speed: 1×"><img src="./uploads/next.png" alt="" /></button>
+        <button id="arena-resize-button" class="arena-placeholder-button" type="button" aria-label="Resize arena" aria-pressed="false" title="Resize arena"><img src="./uploads/image-3.png" alt="" /></button>
+        <button id="debug-button" class="arena-placeholder-button debug-button" type="button" aria-label="Show hitboxes" aria-pressed="false" title="Show hitboxes">Debug</button>
+        <div id="background-color-panel" class="background-color-panel" aria-label="Arena background color options" hidden>
+          <button id="background-color-reset" type="button">Reset to default</button>
+          <button id="background-color-blue" type="button">Default Arena</button>
+          <button id="background-color-tainted" type="button">Tainted Arena</button>
+          <button id="background-color-experiment" type="button">An Experiment</button>
+          <label class="background-custom-color">Custom color
+            <input id="arena-background-color" type="color" value="#f4f4f1" aria-label="Choose custom arena background color" />
+          </label>
+        </div>
+      </div>
+      <section class="canvas-frame" aria-label="Animation canvas">
+        <canvas id="scene" aria-label="Two squares bouncing inside a canvas"></canvas>
+        <button id="arena-resize-handle" class="arena-resize-handle" type="button" aria-label="Drag to resize arena" hidden><span></span></button>
+        <div class="health-layer" aria-hidden="true">
+          <div class="health-icon" id="guy-one-health">
+            <svg viewBox="0 0 72 72" focusable="false">
+              <defs><clipPath id="guy-one-cross-clip"><path d="M24 0h24v24h24v24H48v24H24V48H0V24h24z" /></clipPath></defs>
+              <path class="health-cross-bg" d="M24 0h24v24h24v24H48v24H24V48H0V24h24z" />
+              <rect class="health-fill" x="0" y="0" width="72" height="72" clip-path="url(#guy-one-cross-clip)" />
+              <path class="health-cross-outline" d="M24 0h24v24h24v24H48v24H24V48H0V24h24z" />
+              <text x="36" y="37">1000</text>
+            </svg>
+          </div>
+          <div class="health-icon" id="guy-two-health">
+            <svg viewBox="0 0 72 72" focusable="false">
+              <defs><clipPath id="guy-two-cross-clip"><path d="M24 0h24v24h24v24H48v24H24V48H0V24h24z" /></clipPath></defs>
+              <path class="health-cross-bg" d="M24 0h24v24h24v24H48v24H24V48H0V24h24z" />
+              <rect class="health-fill" x="0" y="0" width="72" height="72" clip-path="url(#guy-two-cross-clip)" />
+              <path class="health-cross-outline" d="M24 0h24v24h24v24H48v24H24V48H0V24h24z" />
+              <text x="36" y="37">1000</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+      <div class="play-controls">
+        <button id="start-button" type="button">Start</button>
+        <button id="pause-button" type="button" disabled>Pause</button>
+        <button id="arena-resize-done" type="button" hidden>Done</button>
+        <button id="arena-resize-reset" type="button" hidden>Reset</button>
+      </div>
+      <div class="restart-controls">
+        <button id="restart-button" type="button">Restart</button>
+      </div>
+      <p class="credit"><span>Inspired by</span><a href="https://www.youtube.com/@Spenntf2/shorts" target="_blank" rel="noopener noreferrer">@SpennTF2</a></p>
+    </main>
+    <div class="modal-backdrop watermark-backdrop" id="watermark-modal" hidden>
+      <form class="watermark-prompt" id="watermark-form" role="dialog" aria-modal="true" aria-labelledby="watermark-title">
+        <h2 id="watermark-title">Add Watermark</h2>
+        <label for="watermark-text">Text</label>
+        <input id="watermark-text" type="text" maxlength="120" autocomplete="off" placeholder="Leave empty for no watermark" />
+        <p class="watermark-prompt-credit">Please credit SpennTF2 if making a video!</p>
+        <div class="watermark-prompt-actions">
+          <button id="cancel-watermark" type="button">Cancel</button>
+          <button type="submit">Apply</button>
+        </div>
+      </form>
+    </div>
+    <div class="modal-backdrop" id="move-modal" hidden>
+      <section class="move-editor" role="dialog" aria-modal="true" aria-labelledby="move-editor-title">
+        <header class="move-editor-header">
+          <h2 id="move-editor-title">New Move</h2>
+          <button id="close-move-modal" class="close-move-modal" type="button" aria-label="Close">×</button>
+        </header>
+        <div class="move-condition-row">
+          <label class="move-condition">Condition:
+            <select id="move-condition-select" aria-label="Condition">
+              <option value="collision" selected>Collision</option>
+              <option value="damaged">Damaged</option>
+              <option value="metronome">Metronome Tick</option>
+              <option value="match-start">Match Start</option>
+            </select>
+          </label>
+          <div class="condition-properties">
+            <div class="condition-fields" id="collision-properties">
+              <span>When hitting target's</span>
+              <details id="target-side-picker" class="condition-multi-select">
+                <summary id="target-side-summary" aria-label="Target sides">any</summary>
+                <div class="condition-choice-list">
+                  <label><input type="checkbox" value="any" checked />any</label>
+                  <label><input type="checkbox" value="left" />left</label>
+                  <label><input type="checkbox" value="up" />up</label>
+                  <label><input type="checkbox" value="down" />down</label>
+                  <label><input type="checkbox" value="right" />right</label>
+                </div>
+              </details>
+              <span>from</span>
+              <details id="approach-side-picker" class="condition-multi-select">
+                <summary id="approach-side-summary" aria-label="Approach sides">any</summary>
+                <div class="condition-choice-list">
+                  <label><input type="checkbox" value="any" checked />any</label>
+                  <label><input type="checkbox" value="left" />left</label>
+                  <label><input type="checkbox" value="up" />up</label>
+                  <label><input type="checkbox" value="down" />down</label>
+                  <label><input type="checkbox" value="right" />right</label>
+                </div>
+              </details>
+              <span>, run the timeline.</span>
+            </div>
+            <div class="condition-fields" id="damaged-properties" hidden>
+              <span>When damage from</span>
+              <details id="damage-from-picker" class="condition-multi-select">
+                <summary id="damage-from-summary" aria-label="Damage source sides">any</summary>
+                <div class="condition-choice-list">
+                  <label><input type="checkbox" value="any" checked />any</label>
+                  <label><input type="checkbox" value="left" />left</label>
+                  <label><input type="checkbox" value="up" />up</label>
+                  <label><input type="checkbox" value="down" />down</label>
+                  <label><input type="checkbox" value="right" />right</label>
+                </div>
+              </details>
+              <span>, run the timeline.</span>
+            </div>
+            <div class="condition-fields" id="metronome-properties" hidden>
+              <span>After</span>
+              <input id="metronome-delay" type="number" min="0" step="0.1" value="0" aria-label="Initial delay in seconds" />
+              <span>seconds, run the timeline every</span>
+              <input id="metronome-interval" type="number" min="0.1" step="0.1" value="1" aria-label="Interval in seconds" />
+              <span>seconds.</span>
+            </div>
+            <p class="condition-fields match-start-copy" id="match-start-properties" hidden>When the match starts, runs the timeline.</p>
+          </div>
+        </div>
+        <div class="move-editor-workspace">
+          <div class="nodes-column">
+            <section class="move-nodes" aria-label="Nodes">
+              <h3>Nodes</h3>
+              <button id="wait-node" class="hitbox-node" type="button">Wait</button>
+              <button id="visual-node" class="hitbox-node" type="button">Visual</button>
+              <button id="hitbox-node" class="hitbox-node" type="button">Hitbox</button>
+              <button id="projectile-node" class="hitbox-node" type="button">Projectile</button>
+              <button id="velocity-node" class="hitbox-node" type="button">Velocity</button>
+              <button id="sound-node" class="hitbox-node" type="button">Sound</button>
+              <button id="cancel-node" class="hitbox-node" type="button">Cancel</button>
+            </section>
+            <section class="move-node-properties" aria-label="Node Properties">
+              <h3>Node Properties</h3>
+              <div class="hitbox-properties" hidden>
+                <label class="hitbox-damage-setting">Damage to target
+                  <input id="hitbox-damage" type="number" min="0" max="9999" step="1" value="10" />
+                </label>
+                <div class="hitbox-size-editor">
+                  <div id="hitbox-preview" class="hitbox-preview" aria-label="Hitbox dimensions compared with the selected guy">
+                    <span class="hitbox-preview-square"></span>
+                    <span class="hitbox-preview-outline"></span>
+                  </div>
+                  <div class="hitbox-size-controls">
+                    <label class="axis-size-setting"><span>X size</span><input id="hitbox-size-x" type="range" min="16" max="400" step="1" value="100" aria-label="Hitbox X size slider" /><input id="hitbox-size-x-value" type="number" min="1" step="1" value="100" aria-label="Hitbox X size" /></label>
+                    <label class="axis-size-setting"><span>Y size</span><input id="hitbox-size-y" type="range" min="16" max="400" step="1" value="100" aria-label="Hitbox Y size slider" /><input id="hitbox-size-y-value" type="number" min="1" step="1" value="100" aria-label="Hitbox Y size" /></label>
+                    <div class="hitbox-comparison-labels">
+                      <span>Guy <b id="guy-size-value">100 × 100</b></span>
+                      <span>Hitbox <b id="hitbox-size-label">100 × 100</b></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="hitbox-position-settings">
+                  <span>Position</span>
+                  <label>X <input id="hitbox-position-x" type="number" step="1" value="0" /></label>
+                  <label>Y <input id="hitbox-position-y" type="number" step="1" value="0" /></label>
+                </div>
+                <div class="hitbox-rotation-setting">
+                  <span>Rotation</span>
+                  <button id="hitbox-rotation-dial" class="rotation-dial" type="button" role="slider" aria-label="Hitbox rotation" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0" aria-valuetext="0 degrees" tabindex="0"><span></span></button>
+                  <input id="hitbox-rotation-value" type="number" min="0" max="359" step="1" value="0" aria-label="Rotation in degrees" />
+                  <span>°</span>
+                </div>
+                <label class="wait-time-setting">Time
+                  <input id="hitbox-time" type="number" min="0" step="0.01" value="0.05" />
+                  <span>seconds</span>
+                </label>
+                <label class="hitbox-anchored-setting"><input id="hitbox-anchored" type="checkbox" /> Anchored</label>
+                <div class="hitbox-sound-setting">
+                  <span class="hitbox-sound-label">Sound</span>
+                  <span id="hitbox-sound-name">Default</span>
+                  <input id="hitbox-sound" class="file-picker-input" type="file" accept="audio/*" />
+                  <label class="file-picker-button" for="hitbox-sound">Choose file</label>
+                  <button id="hitbox-sound-default" class="default-sound-button" type="button">Use default sound</button>
+                </div>
+              </div>
+              <div id="projectile-properties" class="projectile-properties" hidden>
+                <label class="hitbox-damage-setting">Projectile ID
+                  <input id="projectile-id" type="text" />
+                </label>
+                <label class="hitbox-damage-setting">Cancel
+                  <input id="projectile-cancel-id" type="text" />
+                </label>
+                <label class="hitbox-damage-setting">Spawn at projectile
+                  <input id="projectile-spawn-at-id" type="text" />
+                </label>
+                <div class="projectile-image-setting">
+                  <span>Image</span>
+                  <span id="projectile-image-name" class="sound-file-name">No image selected</span>
+                  <input id="projectile-image-file" class="file-picker-input" type="file" accept="image/*" />
+                  <label class="file-picker-button" for="projectile-image-file">Choose image</label>
+                </div>
+                <div class="hitbox-sound-setting projectile-sound-setting">
+                  <span class="hitbox-sound-label">Hit sound</span>
+                  <span id="projectile-sound-name" class="sound-file-name">Default</span>
+                  <input id="projectile-sound" class="file-picker-input" type="file" accept="audio/*" />
+                  <label class="file-picker-button" for="projectile-sound">Choose file</label>
+                  <button id="projectile-sound-default" class="default-sound-button" type="button">Use default sound</button>
+                </div>
+                <label class="hitbox-damage-setting">Damage to target
+                  <input id="projectile-damage" type="number" min="0" max="9999" step="1" value="112" />
+                </label>
+                <label class="hitbox-damage-setting">Speed
+                  <input id="projectile-speed" type="number" min="1" max="2000" step="1" value="420" />
+                </label>
+                <label class="hitbox-damage-setting">Time (seconds)
+                  <input id="projectile-time" type="number" min="0.05" max="60" step="0.05" value="4" />
+                </label>
+                <label class="hitbox-damage-setting">Rotate speed
+                  <input id="projectile-rotate-speed" type="number" min="-3600" max="3600" step="1" value="90" />
+                </label>
+                <div id="projectile-rotation-setting" class="hitbox-rotation-setting">
+                  <span>Rotation</span>
+                  <button id="projectile-rotation-dial" class="rotation-dial" type="button" role="slider" aria-label="Projectile direction" aria-valuemin="0" aria-valuemax="359" aria-valuenow="90" aria-valuetext="90 degrees" tabindex="0"><span></span></button>
+                  <input id="projectile-rotation-value" type="number" min="0" max="359" step="1" value="90" aria-label="Projectile direction in degrees" />
+                  <span>°</span>
+                </div>
+                <label class="hitbox-anchored-setting"><input id="projectile-rotate-to-direction" type="checkbox" checked />Rotate to direction</label>
+                <label class="hitbox-anchored-setting"><input id="projectile-tracks" type="checkbox" />Tracks</label>
+                <label class="hitbox-anchored-setting"><input id="projectile-piercing" type="checkbox" />Piercing</label>
+                <label id="projectile-hit-rate-setting" class="hitbox-damage-setting" hidden>Hit Rate (seconds)
+                  <input id="projectile-hit-rate" type="number" min="0" step="0.1" value="1" />
+                </label>
+                <label id="projectile-damage-deduction-setting" class="hitbox-damage-setting" hidden>Piercing Damage Deduction
+                  <input id="projectile-damage-deduction" type="number" min="0" step="1" value="0" />
+                </label>
+                <label id="projectile-angle-offset-setting" class="hitbox-damage-setting" hidden>Angle offset (°)
+                  <input id="projectile-angle-offset" type="number" min="0" max="180" step="1" value="0" />
+                </label>
+                <label id="projectile-homing-setting" class="hitbox-damage-setting" hidden>Homing (°/second)
+                  <input id="projectile-homing" type="number" min="0" max="3600" step="1" value="0" />
+                </label>
+                <label class="hitbox-damage-setting">Size
+                  <input id="projectile-size" type="number" min="0.1" max="10" step="0.1" value="1" />
+                </label>
+                <label class="hitbox-damage-setting">End size
+                  <input id="projectile-end-size" type="number" min="0.1" max="10" step="0.1" value="1" />
+                </label>
+                <label class="hitbox-damage-setting">Bounce count
+                  <input id="projectile-bounce-count" type="number" min="0" max="99" step="1" value="0" />
+                </label>
+                <label class="hitbox-damage-setting">Damage fall-off
+                  <input id="projectile-falloff" type="number" min="0" max="9999" step="0.1" value="0" />
+                </label>
+              </div>
+              <div id="cancel-properties" class="wait-properties" hidden>
+                <label class="hitbox-anchored-setting"><input id="cancel-never-repeat" type="checkbox" />Never repeat move</label>
+                <label class="wait-time-setting">Move Cooldown
+                  <input id="cancel-move-cooldown" type="number" min="0" step="0.1" value="1" />
+                  <span>seconds</span>
+                </label>
+              </div>
+              <div class="sound-properties" hidden>
+                <div class="sound-file-setting">
+                  <span>Sound</span>
+                  <span id="sound-node-file-name" class="sound-file-name">Default</span>
+                  <input id="sound-node-file" class="file-picker-input" type="file" accept="audio/*" />
+                  <label class="file-picker-button" for="sound-node-file">Choose file</label>
+                </div>
+                <label class="sound-volume-setting">Volume
+                  <input id="sound-node-volume" type="range" min="0" max="100" step="1" value="100" />
+                  <output id="sound-node-volume-value">100%</output>
+                </label>
+                <label class="wait-time-setting">Start
+                  <input id="sound-node-start" type="number" min="0" step="0.1" value="0" />
+                  <span>seconds</span>
+                </label>
+                <label class="sound-cancel-setting"><input id="sound-node-fade" type="checkbox" />Fade in and out</label>
+                <label class="sound-cancel-setting"><input id="sound-node-cancel" type="checkbox" />Cancel previous sounds</label>
+              </div>
+              <div id="wait-properties" class="wait-properties" hidden>
+                <label class="wait-time-setting">Time
+                  <input id="wait-node-time" type="number" min="0" step="0.1" value="1" />
+                  <span>seconds</span>
+                </label>
+                <label class="sound-cancel-setting"><input id="wait-node-after-damage" type="checkbox" />After Damage</label>
+              </div>
+              <div id="velocity-properties" class="velocity-properties" hidden>
+                <label class="hitbox-damage-setting">Speed
+                  <input id="velocity-speed" type="number" min="1" max="3000" step="1" value="300" />
+                </label>
+                <label class="hitbox-damage-setting">Distance
+                  <input id="velocity-distance" type="number" min="0" max="5000" step="1" value="200" />
+                </label>
+                <div class="hitbox-rotation-setting">
+                  <span>Rotation</span>
+                  <button id="velocity-rotation-dial" class="rotation-dial" type="button" role="slider" aria-label="Movement direction" aria-valuemin="0" aria-valuemax="359" aria-valuenow="90" aria-valuetext="90 degrees" tabindex="0"><span></span></button>
+                  <input id="velocity-rotation-value" type="number" min="0" max="359" step="1" value="90" aria-label="Movement direction in degrees" />
+                  <span>°</span>
+                </div>
+                <label class="hitbox-anchored-setting"><input id="velocity-track-enemy" type="checkbox" />Track enemy</label>
+                <label class="hitbox-anchored-setting"><input id="velocity-track-opposite" type="checkbox" />Track opposite</label>
+                <label class="hitbox-anchored-setting"><input id="velocity-changes-direction" type="checkbox" />Changes Movement Direction</label>
+                <label class="hitbox-anchored-setting"><input id="velocity-target-of-hitbox" type="checkbox" />Target of hitbox</label>
+              </div>
+              <div class="visual-properties" hidden>
+                <div id="visual-node-preview" class="visual-node-preview" role="img" aria-label="Visual node preview">
+                  <div class="visual-preview-guy"><img id="visual-preview-guy-image" alt="" /></div>
+                  <img id="visual-preview-image" class="visual-preview-image" alt="" hidden />
+                  <span class="visual-preview-empty" hidden>No image selected</span>
+                </div>
+                <label class="visual-type-setting">Type
+                  <select id="visual-node-type">
+                    <option value="Flash">Flash</option>
+                    <option value="Image">Image</option>
+                    <option value="Attached Image">Attached Image</option>
+                    <option value="Overlay">Overlay</option>
+                    <option value="Sprite Replace">Sprite Replace</option>
+                  </select>
+                </label>
+                <div id="visual-data-setting" class="visual-data-setting" hidden>
+                  <span>Data</span>
+                  <span id="visual-data-name" class="visual-data-name">No image selected</span>
+                  <input id="visual-data-file" class="file-picker-input" type="file" accept="image/*,.gif" />
+                  <label class="file-picker-button" for="visual-data-file">Choose image</label>
+                </div>
+                <div id="visual-image-settings" class="visual-image-settings" hidden>
+                  <label class="visual-scale-setting">Scale
+                    <input id="visual-node-scale" type="number" min="0" step="0.1" value="1" />
+                    <span>×</span>
+                  </label>
+                  <div class="visual-position-settings">
+                    <span>Position</span>
+                    <label>X <input id="visual-node-position-x" type="number" step="1" value="0" /></label>
+                    <label>Y <input id="visual-node-position-y" type="number" step="1" value="0" /></label>
+                  </div>
+                  <div class="visual-rotation-setting">
+                    <span>Rotation</span>
+                    <button id="visual-rotation-dial" class="rotation-dial" type="button" role="slider" aria-label="Image rotation" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0" aria-valuetext="0 degrees" tabindex="0"><span></span></button>
+                    <input id="visual-rotation-value" type="number" min="0" max="359" step="1" value="0" aria-label="Rotation in degrees" />
+                    <span>°</span>
+                  </div>
+                  <label class="visual-towards-setting"><input id="visual-node-rotate-towards-enemy" type="checkbox" /> Rotate Towards Enemy</label>
+                  <label class="visual-speed-setting">Speed
+                    <input id="visual-node-speed" type="number" min="0" step="1" value="0" />
+                  </label>
+                  <label class="visual-towards-setting"><input id="visual-node-towards-enemy" type="checkbox" /> Towards Enemy</label>
+                  <label class="visual-towards-setting"><input id="visual-node-mask" type="checkbox" /> Mask to Guy PNG</label>
+                </div>
+                <label id="visual-opacity-setting" class="visual-opacity-setting">Opacity (%)
+                  <input id="visual-node-opacity" type="number" min="0" max="200" step="1" value="50" />
+                </label>
+                <label id="visual-target-of-hitbox-setting" class="visual-towards-setting"><input id="visual-node-target-of-hitbox" type="checkbox" /> Target of hitbox</label>
+                <label class="hitbox-damage-setting">Spawn at projectile
+                  <input id="visual-node-spawn-at-projectile" type="text" placeholder="Projectile ID" />
+                </label>
+                <div id="sprite-replace-settings" class="sprite-replace-settings" hidden>
+                  <label class="wait-time-setting">Time
+                    <input id="sprite-replace-time" type="number" min="0" step="0.1" value="1" />
+                    <span>seconds until idle sprite</span>
+                  </label>
+                  <label class="sprite-number-setting">Rotation (°)
+                    <input id="sprite-replace-rotation" type="number" step="1" value="0" />
+                  </label>
+                  <label class="visual-towards-setting"><input id="sprite-replace-face-enemy" type="checkbox" /> Face Towards Enemy</label>
+                </div>
+                <label class="wait-time-setting">Time
+                  <input id="visual-node-time" type="number" min="0" step="0.1" value="1" />
+                  <span>seconds</span>
+                </label>
+                <label class="wait-time-setting">Fade In
+                  <input id="visual-node-fade-in" type="number" min="0" step="0.1" value="0" />
+                  <span>seconds</span>
+                </label>
+                <label class="wait-time-setting">Fade Out
+                  <input id="visual-node-fade-out" type="number" min="0" step="0.1" value="0" />
+                  <span>seconds</span>
+                </label>
+              </div>
+            </section>
+          </div>
+          <section class="move-timeline" aria-label="Timeline">
+            <h3>Timeline</h3>
+            <div id="move-timeline-list" class="move-timeline-list" aria-label="Timeline nodes"></div>
+          </section>
+        </div>
+        <footer class="move-editor-footer">
+          <button id="move-node-up" class="move-node-order" type="button" aria-label="Move selected node up" disabled>↑</button>
+          <button id="move-node-down" class="move-node-order" type="button" aria-label="Move selected node down" disabled>↓</button>
+          <button id="duplicate-node" class="move-node-order" type="button" aria-label="Duplicate selected node" title="Duplicate selected node" disabled>⧉</button>
+          <button id="remove-node" class="move-node-order remove-node" type="button" aria-label="Remove selected node" title="Remove selected node" disabled>−</button>
+          <button id="preview-move" class="preview-move" type="button" disabled>Preview</button>
+          <button id="finish-move" class="finish-move" type="button">Finish</button>
+        </footer>
+      </section>
+    </div>
+  </body>
+</html>
