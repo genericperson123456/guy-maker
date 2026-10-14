@@ -888,6 +888,14 @@ body.watermark-mode {
 }
 
 #sound-node:hover { background: #5868d8; }
+#state-node { border-color: #118ba0; background: #39d4e8; color: #12373b; box-shadow: 0 3px 0 #118ba0; }
+#state-node:hover { background: #28c3d8; }
+.timeline-node.state-timeline-node { border-color: #118ba0; background: #39d4e8; color: #12373b; box-shadow: 0 3px 0 #118ba0; }
+.timeline-node.state-timeline-node:hover { background: #28c3d8; }
+#random-skip-node { border-color: #00856d; background: #00ffbc; color: #112a25; box-shadow: 0 3px 0 #00856d; }
+#random-skip-node:hover { background: #00e6aa; }
+.timeline-node.random-skip-timeline-node { border-color: #00856d; background: #00ffbc; color: #112a25; box-shadow: 0 3px 0 #00856d; }
+.timeline-node.random-skip-timeline-node:hover { background: #00e6aa; }
 #sound-node:active { box-shadow: 0 1px 0 #4b5ac5; }
 
 #wait-node {
@@ -1603,6 +1611,12 @@ body.watermark-mode {
 .skip-property-label { display: block; margin-bottom: 6px; color: #454640; font-size: 11px; font-weight: 600; }
 .node-target-selected { margin: 6px 0 12px; padding: 8px; border: 1px solid #deded8; background: #fbfbf9; color: #454640; font-size: 11px; }
 #skip-node-target-picker { margin: 0 0 10px; }
+.random-skip-destinations { display: grid; gap: 8px; margin-bottom: 8px; }
+.random-skip-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, 1fr) 62px auto; align-items: center; gap: 5px; }
+.random-skip-row .node-target-selected { min-width: 0; margin: 0; overflow: hidden; padding: 8px 5px; text-overflow: ellipsis; white-space: nowrap; }
+.random-skip-row input { width: 100%; min-width: 0; height: 32px; border: 1px solid #d4d4cc; padding: 4px; }
+.random-skip-remove { min-height: 32px; padding: 4px 6px; border: 1px solid #d4d4cc; background: #fbfbf9; font-size: 10px; cursor: pointer; }
+.random-skip-row .node-target-choices { grid-column: 1 / -1; }
 .skip-variable-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
 .skip-variable-fields input { min-width: 0; width: 100%; }
 #copy-node { width: auto; padding: 0 7px; }

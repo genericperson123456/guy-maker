@@ -125,6 +125,14 @@ const soundNodeCancelInput = document.querySelector('#sound-node-cancel');
 const soundNodeStartInput = document.querySelector('#sound-node-start');
 const soundNodeFadeInput = document.querySelector('#sound-node-fade');
 const variableNodeButton = document.querySelector('#variable-node');
+const stateNodeButton = document.querySelector('#state-node');
+const stateNodeDetails = document.querySelector('#state-properties');
+const stateNodeTypeInput = document.querySelector('#state-node-type');
+const stateNodeValueInput = document.querySelector('#state-node-value');
+const stateNodeTimeInput = document.querySelector('#state-node-time');
+const stateTargetOfHitboxInput = document.querySelector('#state-node-target-of-hitbox');
+const stateTargetPicker = document.querySelector('#state-hitbox-target-picker');
+const variableGlobalInput = document.querySelector('#variable-global');
 const variableNodeDetails = document.querySelector('#variable-properties');
 const variableValueInput = document.querySelector('#variable-value');
 const variableDataValueInput = document.querySelector('#variable-data-value');
@@ -134,6 +142,10 @@ const velocityTargetPicker = document.querySelector('#velocity-hitbox-target-pic
 const visualTargetPicker = document.querySelector('#visual-hitbox-target-picker');
 const waitTargetPicker = document.querySelector('#wait-hitbox-target-picker');
 const skipNodeButton = document.querySelector('#skip-node');
+const randomSkipNodeButton = document.querySelector('#random-skip-node');
+const randomSkipNodeDetails = document.querySelector('#random-skip-properties');
+const randomSkipDestinations = document.querySelector('#random-skip-destinations');
+const randomSkipAddButton = document.querySelector('#random-skip-add');
 const skipNodeDetails = document.querySelector('#skip-properties');
 const skipNodeTargetButton = document.querySelector('#skip-node-target');
 const skipNodeSelected = document.querySelector('#skip-node-selected');
@@ -220,6 +232,7 @@ const collisionProperties = document.querySelector('#collision-properties');
 const damagedProperties = document.querySelector('#damaged-properties');
 const metronomeProperties = document.querySelector('#metronome-properties');
 const matchStartProperties = document.querySelector('#match-start-properties');
+const clickProperties = document.querySelector('#click-properties');
 const healthIcons = [
   document.querySelector('#guy-two-health'),
   document.querySelector('#guy-one-health'),
@@ -406,6 +419,10 @@ restartButton.addEventListener('click', () => {
   }
   activeVelocityMoves.length = 0;
   for (const square of squares) {
+    square.stateEffects = {};
+    square.maxHealth = square.defaultHealth;
+    square.speed = square.defaultSpeed;
+    square.size = square.defaultSize;
     square.vx = square.startDirectionX * square.speed;
     square.vy = square.startDirectionY * square.speed;
     square.health = square.maxHealth;
@@ -417,6 +434,7 @@ restartButton.addEventListener('click', () => {
   winnerAudio.pause();
   if (winnerAudio.readyState > 0) winnerAudio.currentTime = 0;
   resetMoveTimers();
+  for (const variables of Object.values(globalVariablesByGuy)) variables.clear();
   needsStartMotion = true;
   positionSquaresAtStart();
 });
@@ -731,11 +749,11 @@ function connectStats(panel, square) {
       }
 
       if (stat === 'health') {
-        square.maxHealth = value;
+        square.defaultHealth = square.maxHealth = value;
         square.health = value;
       } else if (stat === 'speed') {
         const currentSpeed = Math.hypot(square.vx, square.vy);
-        square.speed = value;
+        square.defaultSpeed = square.speed = value;
         if (currentSpeed > 0) {
           square.vx = square.vx / currentSpeed * value;
           square.vy = square.vy / currentSpeed * value;
@@ -744,7 +762,7 @@ function connectStats(panel, square) {
           square.vy = square.startDirectionY * value;
         }
       } else if (stat === 'size') {
-        square.size = value;
+        square.defaultSize = square.size = value;
         const half = value / 2;
         square.x = Math.max(half, Math.min(width - half, square.x));
         square.y = Math.max(half, Math.min(height - half, square.y));
@@ -800,6 +818,7 @@ function updateMoveCondition() {
   damagedProperties.hidden = moveConditionSelect.value !== 'damaged';
   metronomeProperties.hidden = moveConditionSelect.value !== 'metronome';
   matchStartProperties.hidden = moveConditionSelect.value !== 'match-start';
+  clickProperties.hidden = moveConditionSelect.value !== 'click';
 }
 
 moveConditionSelect.addEventListener('change', updateMoveCondition);
@@ -883,6 +902,7 @@ function updateHitboxPreview() {
 const movesByGuy = { 'guy-one': [], 'guy-two': [] };
 const moveStackSettings = { 'guy-one': { stackMoves: true, selfStack: false }, 'guy-two': { stackMoves: true, selfStack: false } };
 const activeMoveTimelines = { 'guy-one': new Map(), 'guy-two': new Map() };
+const globalVariablesByGuy = { 'guy-one': new Map(), 'guy-two': new Map() };
 const damagePopups = [];
 const activeSoundNodes = new Set();
 const activeVisuals = [];
@@ -928,6 +948,7 @@ const variableNumberProperties = {
   'visual-node-position-y': 'positionY', 'visual-rotation-value': 'rotation', 'visual-node-speed': 'speed',
   'visual-node-opacity': 'opacity', 'sprite-replace-time': 'time', 'sprite-replace-rotation': 'rotation',
   'visual-node-time': 'time', 'visual-node-fade-in': 'fadeIn', 'visual-node-fade-out': 'fadeOut',
+  'state-node-time': 'time',
 };
 for (const id of Object.keys(variableNumberProperties)) {
   const input = document.getElementById(id);
@@ -959,7 +980,7 @@ function renderTimeline() {
   draftNodes.forEach(node => {
     const nodeButton = document.createElement('button');
     nodeButton.type = 'button';
-    const nodeClass = node.type === 'skip' ? 'skip-timeline-node' : node.type === 'cancel' ? 'cancel-timeline-node' : node.type === 'variable' ? 'variable-timeline-node' : node.type === 'sound' ? 'sound-timeline-node' : node.type === 'wait' ? 'wait-timeline-node' : node.type === 'visual' ? 'visual-timeline-node' : node.type === 'projectile' ? 'projectile-timeline-node' : node.type === 'velocity' ? 'velocity-timeline-node' : 'hitbox-timeline-node';
+    const nodeClass = node.type === 'skip' || node.type === 'random-skip' ? (node.type === 'skip' ? 'skip-timeline-node' : 'random-skip-timeline-node') : node.type === 'state' ? 'state-timeline-node' : node.type === 'cancel' ? 'cancel-timeline-node' : node.type === 'variable' ? 'variable-timeline-node' : node.type === 'sound' ? 'sound-timeline-node' : node.type === 'wait' ? 'wait-timeline-node' : node.type === 'visual' ? 'visual-timeline-node' : node.type === 'projectile' ? 'projectile-timeline-node' : node.type === 'velocity' ? 'velocity-timeline-node' : 'hitbox-timeline-node';
     nodeButton.className = `timeline-node ${nodeClass}`;
     nodeButton.dataset.nodeId = node.id;
     nodeButton.textContent = getTimelineNodeLabel(node);
@@ -1076,7 +1097,7 @@ undoNodeButton.addEventListener('click', () => {
 copyNodeButton.addEventListener('click', () => {
   const node = draftNodes.find(item => item.id === selectedNodeId);
   if (!node) return;
-  copiedNode = { ...node, id: undefined };
+  copiedNode = { ...node, id: undefined, destinations: node.destinations?.map(destination => ({ ...destination })) };
   movesList.querySelectorAll('.paste-node').forEach(button => { button.disabled = false; });
 });
 
@@ -1092,7 +1113,7 @@ function moveSelectedNode(offset) {
 function duplicateSelectedNode() {
   const index = draftNodes.findIndex(node => node.id === selectedNodeId);
   if (index < 0) return;
-  const duplicate = { ...draftNodes[index], id: nextNodeId++ };
+  const duplicate = { ...draftNodes[index], id: nextNodeId++, destinations: draftNodes[index].destinations?.map(destination => ({ ...destination })) };
   draftNodes.splice(index + 1, 0, duplicate);
   selectedNodeId = duplicate.id;
   renderTimeline();
@@ -1118,6 +1139,8 @@ function removeSelectedNode() {
     cancelNodeDetails.hidden = true;
   skipNodeDetails.hidden = true;
   variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
   }
 }
 
@@ -1128,6 +1151,8 @@ function getTimelineNodeLabel(node) {
   if (node.type === 'visual') return `Visual [${node.visualType || 'Flash'}]`;
   if (node.type === 'velocity') return `Velocity [${node.speed ?? 300} / ${node.distance ?? 200}]`;
   if (node.type === 'skip') return 'Skip';
+  if (node.type === 'random-skip') return 'Random Skip';
+  if (node.type === 'state') return `State [${node.stateType || 'IFrames'}]`;
   if (node.type === 'cancel') return 'Cancel';
   if (node.type === 'variable') return 'Variable';
   return `Wait [${node.time ?? 1}]`;
@@ -1152,6 +1177,8 @@ function selectTimelineNode(nodeId) {
   cancelNodeDetails.hidden = node.type !== 'cancel';
   skipNodeDetails.hidden = node.type !== 'skip';
   variableNodeDetails.hidden = node.type !== 'variable';
+  stateNodeDetails.hidden = node.type !== 'state';
+  randomSkipNodeDetails.hidden = node.type !== 'random-skip';
   timelineList.querySelectorAll('.timeline-node').forEach(button => {
     button.setAttribute('aria-pressed', String(Number(button.dataset.nodeId) === selectedNodeId));
   });
@@ -1184,10 +1211,68 @@ function selectTimelineNode(nodeId) {
     soundNodeFadeInput.onchange = () => { node.fade = soundNodeFadeInput.checked; };
     return;
   }
+  if (node.type === 'state') {
+    stateNodeTypeInput.value = node.stateType ?? 'IFrames';
+    stateNodeValueInput.value = node.value ?? '1';
+    stateNodeTimeInput.value = node.time ?? 1;
+    stateTargetOfHitboxInput.checked = Boolean(node.targetOfHitbox);
+    stateTargetPicker.hidden = !node.targetOfHitbox;
+    if (node.targetOfHitbox) renderHitboxTargetPicker(stateTargetPicker, node, 'targetNodeIds');
+    stateNodeTypeInput.onchange = () => { node.stateType = stateNodeTypeInput.value; updateTimelineNodeLabel(node); };
+    stateNodeValueInput.oninput = () => { node.value = stateNodeValueInput.value; };
+    stateNodeTimeInput.oninput = () => { const value = stateNodeTimeInput.valueAsNumber; if (Number.isFinite(value)) node.time = Math.max(0, value); };
+    stateTargetOfHitboxInput.onchange = () => {
+      node.targetOfHitbox = stateTargetOfHitboxInput.checked;
+      stateTargetPicker.hidden = !node.targetOfHitbox;
+      if (node.targetOfHitbox) renderHitboxTargetPicker(stateTargetPicker, node, 'targetNodeIds');
+    };
+    return;
+  }
+  if (node.type === 'random-skip') {
+    node.destinations ??= [];
+    randomSkipDestinations.replaceChildren();
+    const renderDestinations = () => {
+      randomSkipDestinations.replaceChildren();
+      node.destinations.forEach((destination, index) => {
+        const row = document.createElement('div');
+        row.className = 'random-skip-row';
+        const pick = document.createElement('button');
+        pick.type = 'button';
+        pick.className = 'node-target-button';
+        pick.textContent = 'Select node';
+        const selected = document.createElement('span');
+        selected.className = 'node-target-selected';
+        selected.textContent = destination.nodeId == null ? 'No node selected' : getTimelineNodeLabel(draftNodes.find(item => item.id === destination.nodeId) ?? {type:'wait'});
+        const chance = document.createElement('input');
+        chance.type = 'number'; chance.min = '0'; chance.max = '100'; chance.step = '1'; chance.value = destination.chance ?? 50; chance.setAttribute('aria-label', 'Chance percentage');
+        chance.addEventListener('input', () => { destination.chance = Math.max(0, Math.min(100, Number(chance.value) || 0)); });
+        const remove = document.createElement('button');
+        remove.type = 'button'; remove.className = 'random-skip-remove'; remove.textContent = 'Remove';
+        remove.addEventListener('click', () => { node.destinations.splice(index, 1); renderDestinations(); });
+        pick.addEventListener('click', () => {
+          const picker = document.createElement('div'); picker.className = 'node-target-choices';
+          const currentIndex = draftNodes.findIndex(item => item.id === node.id);
+          const candidates = draftNodes.filter((item, itemIndex) => itemIndex > currentIndex);
+          candidates.forEach(candidate => {
+            const option = document.createElement('button'); option.type = 'button'; option.className = 'node-target-button'; option.textContent = getTimelineNodeLabel(candidate);
+            option.addEventListener('click', () => { destination.nodeId = candidate.id; renderDestinations(); }); picker.append(option);
+          });
+          if (!candidates.length) { const empty = document.createElement('span'); empty.textContent = 'Add a node below Random Skip first.'; picker.append(empty); }
+          row.replaceChild(picker, selected);
+        });
+        row.append(pick, selected, chance, remove);
+        randomSkipDestinations.append(row);
+      });
+    };
+    renderDestinations();
+    randomSkipAddButton.onclick = () => { node.destinations.push({ nodeId: null, chance: 50 }); renderDestinations(); };
+    return;
+  }
   if (node.type === 'variable') {
     variableValueInput.value = node.variable ?? '';
     variableDataValueInput.value = node.value ?? '';
     variableMathInput.checked = Boolean(node.math);
+    variableGlobalInput.checked = Boolean(node.global);
     variableRemoveInput.checked = Boolean(node.remove);
     variableTargetOfHitboxInput.checked = Boolean(node.targetOfHitbox);
     variableTargetPicker.hidden = !node.targetOfHitbox;
@@ -1195,6 +1280,7 @@ function selectTimelineNode(nodeId) {
     variableValueInput.oninput = () => { node.variable = variableValueInput.value; };
     variableDataValueInput.oninput = () => { node.value = variableDataValueInput.value; };
     variableMathInput.onchange = () => { node.math = variableMathInput.checked; };
+    variableGlobalInput.onchange = () => { node.global = variableGlobalInput.checked; };
     variableRemoveInput.onchange = () => { node.remove = variableRemoveInput.checked; };
     variableTargetOfHitboxInput.onchange = () => {
       node.targetOfHitbox = variableTargetOfHitboxInput.checked;
@@ -1875,6 +1961,8 @@ function addHitboxNode() {
   cancelNodeDetails.hidden = true;
   skipNodeDetails.hidden = true;
   variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
   renderTimeline();
 }
 
@@ -1917,6 +2005,8 @@ projectileNodeButton.addEventListener('click', () => {
   cancelNodeDetails.hidden = true;
   skipNodeDetails.hidden = true;
   variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
   renderTimeline();
 });
 velocityNodeButton.addEventListener('click', () => {
@@ -1942,6 +2032,8 @@ velocityNodeButton.addEventListener('click', () => {
   cancelNodeDetails.hidden = true;
   skipNodeDetails.hidden = true;
   variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
   renderTimeline();
 });
 soundNodeButton.addEventListener('click', () => {
@@ -1956,6 +2048,20 @@ soundNodeButton.addEventListener('click', () => {
   cancelNodeDetails.hidden = true;
   skipNodeDetails.hidden = true;
   variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
+  renderTimeline();
+});
+stateNodeButton.addEventListener('click', () => {
+  draftNodes.push({ id: nextNodeId++, type: 'state', stateType: 'IFrames', value: '1', time: 1, targetOfHitbox: false, targetNodeIds: [] });
+  selectedNodeId = null;
+  hitboxNodeDetails.hidden = true; projectileNodeDetails.hidden = true; soundNodeDetails.hidden = true; waitNodeDetails.hidden = true; visualNodeDetails.hidden = true; velocityNodeDetails.hidden = true; cancelNodeDetails.hidden = true; skipNodeDetails.hidden = true; variableNodeDetails.hidden = true; stateNodeDetails.hidden = true; randomSkipNodeDetails.hidden = true;
+  renderTimeline();
+});
+randomSkipNodeButton.addEventListener('click', () => {
+  draftNodes.push({ id: nextNodeId++, type: 'random-skip', destinations: [] });
+  selectedNodeId = null;
+  hitboxNodeDetails.hidden = true; projectileNodeDetails.hidden = true; soundNodeDetails.hidden = true; waitNodeDetails.hidden = true; visualNodeDetails.hidden = true; velocityNodeDetails.hidden = true; cancelNodeDetails.hidden = true; skipNodeDetails.hidden = true; variableNodeDetails.hidden = true; stateNodeDetails.hidden = true; randomSkipNodeDetails.hidden = true;
   renderTimeline();
 });
 variableNodeButton.addEventListener('click', () => {
@@ -1969,6 +2075,8 @@ variableNodeButton.addEventListener('click', () => {
   velocityNodeDetails.hidden = true;
   cancelNodeDetails.hidden = true;
   variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
   renderTimeline();
 });
 skipNodeButton.addEventListener('click', () => {
@@ -1983,6 +2091,8 @@ skipNodeButton.addEventListener('click', () => {
   cancelNodeDetails.hidden = true;
   skipNodeDetails.hidden = true;
   variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
   renderTimeline();
 });
 
@@ -1998,6 +2108,8 @@ cancelNodeButton.addEventListener('click', () => {
   cancelNodeDetails.hidden = true;
   skipNodeDetails.hidden = true;
   variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
   renderTimeline();
 });
 waitNodeButton.addEventListener('click', () => {
@@ -2012,6 +2124,8 @@ waitNodeButton.addEventListener('click', () => {
   cancelNodeDetails.hidden = true;
   skipNodeDetails.hidden = true;
   variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
   renderTimeline();
 });
 visualNodeButton.addEventListener('click', () => {
@@ -2026,6 +2140,8 @@ visualNodeButton.addEventListener('click', () => {
   cancelNodeDetails.hidden = true;
   skipNodeDetails.hidden = true;
   variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
   renderTimeline();
 });
 categorySelect.addEventListener('change', updateHitboxPreview);
@@ -2159,6 +2275,7 @@ async function importSelectedGuy(file) {
   statsPanel.querySelector('[data-stat="speed"]').value = square.defaultSpeed;
   statsPanel.querySelector('[data-stat="size"]').value = square.defaultSize;
   moveStackSettings[guyId] = { stackMoves: data.stackMoves !== false, selfStack: Boolean(data.selfStack) };
+  globalVariablesByGuy[guyId].clear();
   const loadedMoves = data.moves ?? [];
   const nodeIds = new Map();
   for (const move of loadedMoves) for (const node of move.nodes ?? []) nodeIds.set(node.id, nextNodeId++);
@@ -2169,6 +2286,7 @@ async function importSelectedGuy(file) {
       const node = { ...sourceNode, id: nodeIds.get(sourceNode.id) ?? nextNodeId++ };
       for (const field of ['targetNodeIds', 'afterHitNodeIds']) node[field] = (node[field] ?? []).map(id => nodeIds.get(id) ?? id);
       if (node.skipNodeId != null) node.skipNodeId = nodeIds.get(node.skipNodeId) ?? null;
+      if (node.destinations) node.destinations = node.destinations.map(destination => ({ ...destination, nodeId: nodeIds.get(destination.nodeId) ?? null }));
       if (typeof node.image === 'string') {
         node.image = await imageFromDataUrl(node.image);
         node.imageBounds = node.image?.imageBounds ?? null;
@@ -2231,7 +2349,7 @@ function renderMoves() {
     pasteButton.addEventListener('click', () => {
       if (!copiedNode) return;
       openMoveEditor(move, pasteButton);
-      const pastedNode = { ...copiedNode, id: nextNodeId++, targetNodeIds: [], afterHitNodeIds: [], skipNodeId: null };
+      const pastedNode = { ...copiedNode, id: nextNodeId++, targetNodeIds: [], afterHitNodeIds: [], skipNodeId: null, destinations: copiedNode.destinations?.map(destination => ({ ...destination, nodeId: null })) };
       draftNodes.push(pastedNode);
       renderTimeline();
       selectTimelineNode(pastedNode.id);
@@ -2276,6 +2394,8 @@ function applyMoveToEditor(move) {
   cancelNodeDetails.hidden = true;
   skipNodeDetails.hidden = true;
   variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
   updateMoveCondition();
 }
 
@@ -2398,6 +2518,48 @@ function getGuyId(index) {
   return index === 1 ? 'guy-one' : 'guy-two';
 }
 
+function combatStateActive(square, type) {
+  return (square.stateEffects?.[type]?.until ?? 0) > simulationTime;
+}
+
+function applyCombatState(square, node) {
+  if (!square) return;
+  square.stateEffects ??= {};
+  const type = node.stateType || 'IFrames';
+  const duration = Math.max(0, Number(node.time) || 0);
+  const value = Number(node.value);
+  square.stateEffects[type] = { until: simulationTime + duration, value };
+  if (type === 'Speed' && Number.isFinite(value)) {
+    const current = Math.hypot(square.vx, square.vy);
+    square.speed = Math.max(0, value);
+    if (current > 0) { square.vx = square.vx / current * square.speed; square.vy = square.vy / current * square.speed; }
+  } else if (type === 'Size' && Number.isFinite(value)) {
+    square.size = Math.max(1, value);
+  } else if (type === 'MaxHealth' && Number.isFinite(value)) {
+    square.maxHealth = Math.max(1, value);
+    square.health = Math.min(square.health, square.maxHealth);
+  }
+}
+
+function updateTimedCombatStates() {
+  for (const square of squares) {
+    for (const [type, effect] of Object.entries(square.stateEffects ?? {})) {
+      if (effect.until > simulationTime) continue;
+      delete square.stateEffects[type];
+      if (type === 'Speed') {
+        const current = Math.hypot(square.vx, square.vy);
+        square.speed = square.defaultSpeed;
+        if (current > 0) { square.vx = square.vx / current * square.speed; square.vy = square.vy / current * square.speed; }
+      } else if (type === 'Size') {
+        square.size = square.defaultSize;
+      } else if (type === 'MaxHealth') {
+        square.maxHealth = square.defaultHealth;
+        square.health = Math.min(square.health, square.maxHealth);
+      }
+    }
+  }
+}
+
 async function runMoveTimeline(attackerIndex, move, preview = false) {
   if (preview) return executeMoveTimeline(attackerIndex, move, true, activeMovePreview);
 
@@ -2407,6 +2569,7 @@ async function runMoveTimeline(attackerIndex, move, preview = false) {
   const generation = matchGeneration;
   const activeCount = [...runningMoves.values()].reduce((total, count) => total + count, 0);
   const sameMoveCount = runningMoves.get(move.id) ?? 0;
+  if (combatStateActive(squares[attackerIndex], 'Stun')) return;
   if (sameMoveCount > 0 && !settings.selfStack) return;
   if (activeCount > sameMoveCount && !settings.stackMoves) return;
 
@@ -2435,7 +2598,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
   const pendingTimelineCompletions = [];
   const pendingHitResolutions = [];
   const hitResolutionByNode = new Map();
-  const variables = new Map();
+  const variables = new Map(globalVariablesByGuy[getGuyId(attackerIndex)]);
   const waitForSelectedHits = async ids => {
     if (!ids?.length || ids.some(id => !hitResolutionByNode.has(Number(id)))) return null;
     const results = await Promise.all(ids.map(id => hitResolutionByNode.get(Number(id))));
@@ -2464,8 +2627,26 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       }
       if (moveWasStopped()) return;
       const name = String(sourceNode.variable ?? '').trim();
-      if (sourceNode.remove) variables.delete(name);
-      else if (name) variables.set(name, { value: sourceNode.value ?? '', math: Boolean(sourceNode.math) });
+      const previous = variables.get(name);
+      let value = sourceNode.value ?? '';
+      if (sourceNode.math) {
+        const previousValue = Number(previous?.value);
+        const expression = String(value).trim();
+        const computed = /^[+\-x:]/.test(expression) && Number.isFinite(previousValue)
+          ? evaluateMathExpression(`${previousValue}${expression}`)
+          : Number.isFinite(previousValue)
+            ? previousValue + Number(evaluateMathExpression(expression))
+            : evaluateMathExpression(expression);
+        value = Number.isFinite(Number(computed)) ? String(computed) : computed;
+      }
+      if (sourceNode.remove) {
+        variables.delete(name);
+        if (sourceNode.global) globalVariablesByGuy[getGuyId(attackerIndex)].delete(name);
+      } else if (name) {
+        const stored = { value, math: Boolean(sourceNode.math), global: Boolean(sourceNode.global) };
+        variables.set(name, stored);
+        if (sourceNode.global) globalVariablesByGuy[getGuyId(attackerIndex)].set(name, stored);
+      }
       continue;
     }
     const node = { ...sourceNode };
@@ -2496,6 +2677,30 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
     }
     if (node.type === 'sound') {
       playSoundNode(node);
+      continue;
+    }
+    if (node.type === 'state') {
+      let stateTargetIndex = attackerIndex;
+      if (node.targetOfHitbox) {
+        const hitIndex = node.targetNodeIds?.length
+          ? await waitForSelectedHits(node.targetNodeIds)
+          : await lastHitResolution;
+        if (hitIndex === null || moveWasStopped()) continue;
+        stateTargetIndex = hitIndex;
+      }
+      if (!preview) applyCombatState(squares[stateTargetIndex], node);
+      continue;
+    }
+    if (node.type === 'random-skip') {
+      for (const destination of node.destinations ?? []) {
+        if (destination.nodeId == null) continue;
+        const chance = Math.max(0, Math.min(100, Number(destination.chance) || 0));
+        if (Math.random() * 100 < chance) {
+          const destinationIndex = nodes.findIndex(item => item.id === destination.nodeId);
+          if (destinationIndex > nodeIndex) nodeIndex = destinationIndex - 1;
+          break;
+        }
+      }
       continue;
     }
     if (node.type === 'skip') {
@@ -2892,6 +3097,8 @@ async function previewDraftMove() {
   }
 }
 
+let soundNodeAudioContext = null;
+
 function playSoundNode(node) {
   if (!node.soundURL) return;
   if (node.cancel) {
@@ -2905,7 +3112,23 @@ function playSoundNode(node) {
   }
   const sound = new Audio(node.soundURL);
   const start = Math.max(0, Number(node.start) || 0);
-  const baseVolume = Math.max(0, Math.min(1, (Number(node.volume) || 0) / 100));
+  const baseVolume = Math.max(0, Math.min(2, (Number(node.volume) || 0) / 100));
+  let gainNode = null;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      soundNodeAudioContext ??= new AudioContextClass();
+      const source = soundNodeAudioContext.createMediaElementSource(sound);
+      gainNode = soundNodeAudioContext.createGain();
+      source.connect(gainNode);
+      gainNode.connect(soundNodeAudioContext.destination);
+      soundNodeAudioContext.resume().catch(() => {});
+    }
+  } catch {}
+  const setVolume = value => {
+    if (gainNode) gainNode.gain.value = value;
+    else sound.volume = Math.min(1, value);
+  };
   activeSoundNodes.add(sound);
   const cleanup = () => {
     clearInterval(sound.fadeTimer);
@@ -2923,14 +3146,15 @@ function playSoundNode(node) {
     const fadeDuration = node.fade && Number.isFinite(sound.duration)
       ? Math.min(0.2, (sound.duration - start) / 2)
       : node.fade ? 0.2 : 0;
-    sound.volume = node.fade ? 0 : baseVolume;
+    sound.volume = gainNode ? 1 : Math.min(1, baseVolume);
+    setVolume(node.fade ? 0 : baseVolume);
     if (node.fade) {
       sound.fadeTimer = window.setInterval(() => {
         const fadeIn = fadeDuration > 0 ? Math.min(1, (sound.currentTime - start) / fadeDuration) : 1;
         const fadeOut = fadeDuration > 0 && Number.isFinite(sound.duration)
           ? Math.min(1, (sound.duration - sound.currentTime) / fadeDuration)
           : 1;
-        sound.volume = baseVolume * Math.max(0, Math.min(fadeIn, fadeOut));
+        setVolume(baseVolume * Math.max(0, Math.min(fadeIn, fadeOut)));
       }, 30);
     }
     sound.play().catch(cleanup);
@@ -2987,7 +3211,7 @@ function finishMatch() {
 }
 
 function runMovesForCondition(guyIndex, condition, contactSide = null) {
-  if (matchEnded || squares[guyIndex].health <= 0) return;
+  if (matchEnded || squares[guyIndex].health <= 0 || combatStateActive(squares[guyIndex], 'Stun')) return;
   for (const move of movesByGuy[getGuyId(guyIndex)]) {
     if (move.condition !== condition) continue;
     if (contactSide && condition === 'collision') {
@@ -3023,6 +3247,11 @@ function resetMoveTimers() {
     }
   }
 }
+
+document.addEventListener('click', () => {
+  if (!isRunning || matchEnded) return;
+  for (let guyIndex = 0; guyIndex < squares.length; guyIndex++) runMovesForCondition(guyIndex, 'click');
+});
 
 function startMatchMoves() {
   if (matchEnded) return;
@@ -3237,7 +3466,7 @@ function updateActiveHitboxes() {
       }
       continue;
     }
-    const damageTaken = Math.min(target.health, hitbox.damage);
+    const damageTaken = combatStateActive(target, 'IFrames') ? 0 : Math.min(target.health, hitbox.damage);
     if (damageTaken > 0) {
       runMovesForCondition(hitbox.targetIndex, 'damaged', getDamageSourceSide(hitbox.attackerIndex, hitbox.targetIndex));
       target.health = Math.max(0, target.health - damageTaken);
@@ -3363,6 +3592,12 @@ function updateActiveProjectiles(dt) {
       const hitRateReady = projectile.lastHitAt === null ||
         (projectile.hitRate > 0 && simulationTime >= projectile.lastHitAt + projectile.hitRate);
       if (projectileHitsTarget && hitRateReady) {
+        if (combatStateActive(target, 'Deflect') && !projectile.deflected) {
+          projectile.deflected = true;
+          [projectile.attackerIndex, projectile.targetIndex] = [projectile.targetIndex, projectile.attackerIndex];
+          projectile.vx *= -1; projectile.vy *= -1; projectile.damage = 0; projectile.lastHitAt = null; projectile.tracks = false; projectile.homing = 0;
+          continue;
+        }
         if (!projectile.piercing) removeProjectileFromPlay(projectile);
         projectile.lastHitAt = simulationTime;
         if (projectile.soundURL) {
@@ -3370,9 +3605,9 @@ function updateActiveProjectiles(dt) {
           sound.play().catch(() => {});
         }
         if (projectile.damage > 0) {
-          const damageTaken = projectile.preview ? projectile.damage : Math.min(target.health, projectile.damage);
+          const damageTaken = projectile.preview ? projectile.damage : combatStateActive(target, 'IFrames') ? 0 : Math.min(target.health, projectile.damage);
           if (!projectile.preview) {
-            runMovesForCondition(projectile.targetIndex, 'damaged', getDamageSourceSide(projectile.attackerIndex, projectile.targetIndex));
+            if (damageTaken > 0) runMovesForCondition(projectile.targetIndex, 'damaged', getDamageSourceSide(projectile.attackerIndex, projectile.targetIndex));
             target.health = Math.max(0, target.health - damageTaken);
             playWinnerSoundIfNeeded();
             if (matchEnded) {
@@ -3639,6 +3874,7 @@ function resolveGuyCollision() {
   const overlapX = Math.min(rightA, rightB) - Math.max(leftA, leftB);
   const overlapY = Math.min(bottomA, bottomB) - Math.max(topA, topB);
 
+  if (combatStateActive(a, 'NoCollision') || combatStateActive(b, 'NoCollision')) return false;
   if (overlapX <= 0 || overlapY <= 0) return false;
 
   if (overlapX < overlapY) {
@@ -3903,6 +4139,7 @@ function draw(time) {
   const dt = isRunning || isPreviewingMove || matchEnded ? Math.min((time - lastTime) / 1000 || 0, 0.032) * gameSpeed : 0;
   lastTime = time;
   simulationTime += dt;
+  updateTimedCombatStates();
   ctx.clearRect(0, 0, width, height);
   drawArenaWatermark(time);
 

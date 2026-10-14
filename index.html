@@ -155,6 +155,7 @@
               <option value="damaged">Damaged</option>
               <option value="metronome">Metronome Tick</option>
               <option value="match-start">Match Start</option>
+              <option value="click">Click</option>
             </select>
           </label>
           <div class="condition-properties">
@@ -205,6 +206,7 @@
               <span>seconds.</span>
             </div>
             <p class="condition-fields match-start-copy" id="match-start-properties" hidden>When the match starts, runs the timeline.</p>
+            <p class="condition-fields match-start-copy" id="click-properties" hidden>Once the user clicks anywhere, run the timeline.</p>
           </div>
         </div>
         <div class="move-editor-workspace">
@@ -217,8 +219,10 @@
               <button id="projectile-node" class="hitbox-node" type="button">Projectile</button>
               <button id="velocity-node" class="hitbox-node" type="button">Velocity</button>
               <button id="sound-node" class="hitbox-node" type="button">Sound</button>
+              <button id="state-node" class="hitbox-node" type="button">State</button>
               <button id="variable-node" class="hitbox-node" type="button">Variable</button>
               <button id="skip-node" class="hitbox-node" type="button">Skip</button>
+              <button id="random-skip-node" class="hitbox-node" type="button">Random Skip</button>
               <button id="cancel-node" class="hitbox-node" type="button">Cancel</button>
             </section>
             <section class="move-node-properties" aria-label="Node Properties">
@@ -343,10 +347,37 @@
                 </label>
                 <p class="variable-help">You can use this variable in any number or string properties by putting a $ symbol at the start.</p>
                 <label class="hitbox-anchored-setting"><input id="variable-math" type="checkbox" />Math</label>
+                <label class="hitbox-anchored-setting"><input id="variable-global" type="checkbox" />Global</label>
                 <p class="variable-help">Allows math in the value when it contains only numbers. Supported operations: + (addition), - (subtraction), x (multiplication), and : (division).</p>
                 <label class="hitbox-anchored-setting"><input id="variable-remove" type="checkbox" />Remove</label>
                 <label class="hitbox-anchored-setting"><input id="variable-target-of-hitbox" type="checkbox" />Target of hitbox</label>
                 <div id="variable-hitbox-target-picker" class="node-target-picker" hidden></div>
+              </div>
+              <div id="state-properties" class="wait-properties" hidden>
+                <label class="hitbox-damage-setting">Type
+                  <select id="state-node-type">
+                    <option value="IFrames">IFrames</option>
+                    <option value="Stun">Stun</option>
+                    <option value="Speed">Speed</option>
+                    <option value="Size">Size</option>
+                    <option value="MaxHealth">MaxHealth</option>
+                    <option value="Deflect">Deflect</option>
+                    <option value="NoCollision">NoCollision</option>
+                  </select>
+                </label>
+                <label class="wait-time-setting">Value
+                  <input id="state-node-value" type="text" value="1" />
+                </label>
+                <label class="wait-time-setting">Time
+                  <input id="state-node-time" type="number" min="0" step="0.1" value="1" />
+                  <span>seconds</span>
+                </label>
+                <label class="hitbox-anchored-setting"><input id="state-node-target-of-hitbox" type="checkbox" />Target of hitbox</label>
+                <div id="state-hitbox-target-picker" class="node-target-picker" hidden></div>
+              </div>
+              <div id="random-skip-properties" class="wait-properties" hidden>
+                <div id="random-skip-destinations" class="random-skip-destinations"></div>
+                <button id="random-skip-add" class="node-target-button" type="button">Add node</button>
               </div>
               <div id="skip-properties" class="wait-properties" hidden>
                 <span class="skip-property-label">Node</span>
@@ -374,7 +405,7 @@
                   <label class="file-picker-button" for="sound-node-file">Choose file</label>
                 </div>
                 <label class="sound-volume-setting">Volume
-                  <input id="sound-node-volume" type="range" min="0" max="100" step="1" value="100" />
+                  <input id="sound-node-volume" type="range" min="0" max="200" step="1" value="100" />
                   <output id="sound-node-volume-value">100%</output>
                 </label>
                 <label class="wait-time-setting">Start
