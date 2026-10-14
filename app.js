@@ -146,6 +146,12 @@ const randomSkipNodeButton = document.querySelector('#random-skip-node');
 const randomSkipNodeDetails = document.querySelector('#random-skip-properties');
 const randomSkipDestinations = document.querySelector('#random-skip-destinations');
 const randomSkipAddButton = document.querySelector('#random-skip-add');
+const randomSkipAfterHitInput = document.querySelector('#random-skip-after-hit-landed');
+const randomSkipAfterHitPicker = document.querySelector('#random-skip-hitbox-target-picker');
+const randomSkipVariableNameInput = document.querySelector('#random-skip-variable-name');
+const randomSkipVariableValueInput = document.querySelector('#random-skip-variable-value');
+const randomSkipTargetOfHitboxInput = document.querySelector('#random-skip-target-of-hitbox');
+const randomSkipTargetPicker = document.querySelector('#random-skip-target-picker');
 const skipNodeDetails = document.querySelector('#skip-properties');
 const skipNodeTargetButton = document.querySelector('#skip-node-target');
 const skipNodeSelected = document.querySelector('#skip-node-selected');
@@ -154,6 +160,8 @@ const skipAfterHitLandedInput = document.querySelector('#skip-after-hit-landed')
 const skipTargetPicker = document.querySelector('#skip-hitbox-target-picker');
 const skipVariableNameInput = document.querySelector('#skip-variable-name');
 const skipVariableValueInput = document.querySelector('#skip-variable-value');
+const skipTargetOfHitboxInput = document.querySelector('#skip-target-of-hitbox');
+const skipTargetOfHitboxPicker = document.querySelector('#skip-target-picker');
 const variableRemoveInput = document.querySelector('#variable-remove');
 const variableTargetOfHitboxInput = document.querySelector('#variable-target-of-hitbox');
 const cancelNodeButton = document.querySelector('#cancel-node');
@@ -1230,6 +1238,26 @@ function selectTimelineNode(nodeId) {
   }
   if (node.type === 'random-skip') {
     node.destinations ??= [];
+    randomSkipAfterHitInput.checked = Boolean(node.afterHitLanded);
+    randomSkipAfterHitPicker.hidden = !node.afterHitLanded;
+    if (node.afterHitLanded) renderHitboxTargetPicker(randomSkipAfterHitPicker, node, 'afterHitNodeIds');
+    randomSkipVariableNameInput.value = node.ifVariableName ?? '';
+    randomSkipVariableValueInput.value = node.ifVariableValue ?? '';
+    randomSkipTargetOfHitboxInput.checked = Boolean(node.targetOfHitbox);
+    randomSkipTargetPicker.hidden = !node.targetOfHitbox;
+    if (node.targetOfHitbox) renderHitboxTargetPicker(randomSkipTargetPicker, node, 'targetNodeIds');
+    randomSkipAfterHitInput.onchange = () => {
+      node.afterHitLanded = randomSkipAfterHitInput.checked;
+      randomSkipAfterHitPicker.hidden = !node.afterHitLanded;
+      if (node.afterHitLanded) renderHitboxTargetPicker(randomSkipAfterHitPicker, node, 'afterHitNodeIds');
+    };
+    randomSkipVariableNameInput.oninput = () => { node.ifVariableName = randomSkipVariableNameInput.value; };
+    randomSkipVariableValueInput.oninput = () => { node.ifVariableValue = randomSkipVariableValueInput.value; };
+    randomSkipTargetOfHitboxInput.onchange = () => {
+      node.targetOfHitbox = randomSkipTargetOfHitboxInput.checked;
+      randomSkipTargetPicker.hidden = !node.targetOfHitbox;
+      if (node.targetOfHitbox) renderHitboxTargetPicker(randomSkipTargetPicker, node, 'targetNodeIds');
+    };
     randomSkipDestinations.replaceChildren();
     const renderDestinations = () => {
       randomSkipDestinations.replaceChildren();
@@ -1244,10 +1272,10 @@ function selectTimelineNode(nodeId) {
         selected.className = 'node-target-selected';
         selected.textContent = destination.nodeId == null ? 'No node selected' : getTimelineNodeLabel(draftNodes.find(item => item.id === destination.nodeId) ?? {type:'wait'});
         const chance = document.createElement('input');
-        chance.type = 'number'; chance.min = '0'; chance.max = '100'; chance.step = '1'; chance.value = destination.chance ?? 50; chance.setAttribute('aria-label', 'Chance percentage');
+        chance.type = 'number'; chance.min = '0'; chance.max = '100'; chance.step = '1'; chance.value = destination.chance ?? ''; chance.placeholder = 'Chance'; chance.setAttribute('aria-label', 'Chance percentage');
         chance.addEventListener('input', () => { destination.chance = Math.max(0, Math.min(100, Number(chance.value) || 0)); });
         const remove = document.createElement('button');
-        remove.type = 'button'; remove.className = 'random-skip-remove'; remove.textContent = 'Remove';
+        remove.type = 'button'; remove.className = 'move-node-order remove-node random-skip-remove'; remove.textContent = '−'; remove.setAttribute('aria-label', 'Remove destination'); remove.title = 'Remove destination';
         remove.addEventListener('click', () => { node.destinations.splice(index, 1); renderDestinations(); });
         pick.addEventListener('click', () => {
           const picker = document.createElement('div'); picker.className = 'node-target-choices';
@@ -1265,7 +1293,7 @@ function selectTimelineNode(nodeId) {
       });
     };
     renderDestinations();
-    randomSkipAddButton.onclick = () => { node.destinations.push({ nodeId: null, chance: 50 }); renderDestinations(); };
+    randomSkipAddButton.onclick = () => { node.destinations.push({ nodeId: null, chance: '' }); renderDestinations(); };
     return;
   }
   if (node.type === 'variable') {
@@ -1296,6 +1324,9 @@ function selectTimelineNode(nodeId) {
     if (node.afterHitLanded) renderHitboxTargetPicker(skipTargetPicker, node, 'afterHitNodeIds');
     skipVariableNameInput.value = node.ifVariableName ?? '';
     skipVariableValueInput.value = node.ifVariableValue ?? '';
+    skipTargetOfHitboxInput.checked = Boolean(node.targetOfHitbox);
+    skipTargetOfHitboxPicker.hidden = !node.targetOfHitbox;
+    if (node.targetOfHitbox) renderHitboxTargetPicker(skipTargetOfHitboxPicker, node, 'targetNodeIds');
     skipNodeTargetPicker.hidden = true;
     skipNodeTargetButton.onclick = () => {
       skipNodeTargetPicker.replaceChildren();
@@ -1328,6 +1359,11 @@ function selectTimelineNode(nodeId) {
     };
     skipVariableNameInput.oninput = () => { node.ifVariableName = skipVariableNameInput.value; };
     skipVariableValueInput.oninput = () => { node.ifVariableValue = skipVariableValueInput.value; };
+    skipTargetOfHitboxInput.onchange = () => {
+      node.targetOfHitbox = skipTargetOfHitboxInput.checked;
+      skipTargetOfHitboxPicker.hidden = !node.targetOfHitbox;
+      if (node.targetOfHitbox) renderHitboxTargetPicker(skipTargetOfHitboxPicker, node, 'targetNodeIds');
+    };
     return;
   }
   if (node.type === 'cancel') {
@@ -2588,9 +2624,9 @@ async function runMoveTimeline(attackerIndex, move, preview = false) {
 async function executeMoveTimeline(attackerIndex, move, preview = false, previewState = null) {
   const generation = matchGeneration;
   const moveWasStopped = () => preview ? Boolean(previewState?.cancelled) : (matchEnded || generation !== matchGeneration);
-  const attacker = squares[attackerIndex];
-  const targetIndex = attackerIndex === 0 ? 1 : 0;
-  const target = squares[targetIndex];
+  let targetIndex = attackerIndex === 0 ? 1 : 0;
+  let attacker = squares[attackerIndex];
+  let target = squares[targetIndex];
   let lastHitResolution = Promise.resolve(null);
   if (!attacker || !target || attacker === target || (!preview && attacker.health <= 0)) return;
   if (!preview && (move._neverRepeat || simulationTime < (move._cooldownUntil ?? 0))) return;
@@ -2598,11 +2634,21 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
   const pendingTimelineCompletions = [];
   const pendingHitResolutions = [];
   const hitResolutionByNode = new Map();
-  const variables = new Map(globalVariablesByGuy[getGuyId(attackerIndex)]);
+  let variables = new Map(globalVariablesByGuy[getGuyId(attackerIndex)]);
+  const switchToHitTarget = hitIndex => {
+    if (!Number.isInteger(hitIndex) || combatStateActive(squares[hitIndex], 'Stun')) return false;
+    attackerIndex = hitIndex;
+    targetIndex = 1 - hitIndex;
+    attacker = squares[attackerIndex];
+    target = squares[targetIndex];
+    variables = new Map(globalVariablesByGuy[getGuyId(attackerIndex)]);
+    lastHitResolution = Promise.resolve(null);
+    return true;
+  };
   const waitForSelectedHits = async ids => {
     if (!ids?.length || ids.some(id => !hitResolutionByNode.has(Number(id)))) return null;
     const results = await Promise.all(ids.map(id => hitResolutionByNode.get(Number(id))));
-    return results.every(Boolean) ? targetIndex : null;
+    return results.every(result => result !== null) ? results.at(-1) : null;
   };
   const waitForAnyPendingHit = async () => {
     const hits = pendingHitResolutions.splice(0);
@@ -2691,19 +2737,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       if (!preview) applyCombatState(squares[stateTargetIndex], node);
       continue;
     }
-    if (node.type === 'random-skip') {
-      for (const destination of node.destinations ?? []) {
-        if (destination.nodeId == null) continue;
-        const chance = Math.max(0, Math.min(100, Number(destination.chance) || 0));
-        if (Math.random() * 100 < chance) {
-          const destinationIndex = nodes.findIndex(item => item.id === destination.nodeId);
-          if (destinationIndex > nodeIndex) nodeIndex = destinationIndex - 1;
-          break;
-        }
-      }
-      continue;
-    }
-    if (node.type === 'skip') {
+    if (node.type === 'random-skip' || node.type === 'skip') {
       if (node.afterHitLanded) {
         const landed = node.afterHitNodeIds?.length
           ? (await waitForSelectedHits(node.afterHitNodeIds)) !== null
@@ -2715,8 +2749,28 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
         const value = variable?.math ? evaluateMathExpression(variable.value) : variable?.value;
         if (String(value ?? '') !== String(node.ifVariableValue ?? '')) continue;
       }
-      const destinationIndex = nodes.findIndex(item => item.id === node.skipNodeId);
-      if (destinationIndex >= 0) nodeIndex = destinationIndex - 1;
+      let destinationIndex = -1;
+      if (node.type === 'skip') {
+        destinationIndex = nodes.findIndex(item => item.id === node.skipNodeId);
+      } else {
+        for (const destination of node.destinations ?? []) {
+          if (destination.nodeId == null) continue;
+          const chance = Math.max(0, Math.min(100, Number(destination.chance) || 0));
+          if (Math.random() * 100 < chance) {
+            destinationIndex = nodes.findIndex(item => item.id === destination.nodeId);
+            if (destinationIndex > nodeIndex) break;
+            destinationIndex = -1;
+          }
+        }
+      }
+      if (destinationIndex <= nodeIndex) continue;
+      if (node.targetOfHitbox) {
+        const hitIndex = node.targetNodeIds?.length
+          ? await waitForSelectedHits(node.targetNodeIds)
+          : await lastHitResolution;
+        if (hitIndex === null || moveWasStopped() || !switchToHitTarget(hitIndex)) continue;
+      }
+      nodeIndex = destinationIndex - 1;
       continue;
     }
     if (node.type === 'cancel') {
@@ -2938,11 +2992,12 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       };
       rememberProjectilePosition(projectile);
       if (preview && projectile.piercing) previewMoveEndTime = Math.max(previewMoveEndTime, projectile.expiresAt);
+      const resolvedTargetIndex = targetIndex;
       const projectileResolution = new Promise(resolve => { projectile.complete = resolve; });
       activeProjectiles.push(projectile);
       pendingHitResolutions.push(projectileResolution);
-      hitResolutionByNode.set(sourceNode.id, projectileResolution.then(Boolean));
-      lastHitResolution = projectileResolution.then(hit => hit ? targetIndex : null);
+      hitResolutionByNode.set(sourceNode.id, projectileResolution.then(hit => hit ? resolvedTargetIndex : null));
+      lastHitResolution = projectileResolution.then(hit => hit ? resolvedTargetIndex : null);
       if (preview) pendingTimelineCompletions.push(projectileResolution);
       continue;
     }
@@ -2956,6 +3011,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
     const cos = Math.cos(attacker.rotation);
     const sin = Math.sin(attacker.rotation);
     let resolveHitbox;
+    const resolvedTargetIndex = targetIndex;
     const hitboxResolution = new Promise(resolve => { resolveHitbox = resolve; });
     const activeHitbox = {
       attackerIndex,
@@ -2980,12 +3036,12 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
     };
     activeHitboxes.push(activeHitbox);
     pendingHitResolutions.push(hitboxResolution);
-    hitResolutionByNode.set(sourceNode.id, hitboxResolution.then(Boolean));
+    hitResolutionByNode.set(sourceNode.id, hitboxResolution.then(hit => hit ? resolvedTargetIndex : null));
     if (preview) {
       pendingTimelineCompletions.push(hitboxResolution);
       previewMoveEndTime = Math.max(previewMoveEndTime, simulationTime + duration);
     }
-    lastHitResolution = hitboxResolution.then(hit => hit ? targetIndex : null);
+    lastHitResolution = hitboxResolution.then(hit => hit ? resolvedTargetIndex : null);
   }
   if (preview) await Promise.all(pendingTimelineCompletions);
 }
