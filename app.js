@@ -37,6 +37,8 @@ const guyOneHitbox = document.querySelector('#guy-one-hitbox');
 const guyTwoHitbox = document.querySelector('#guy-two-hitbox');
 const guyOneRotateSpeed = document.querySelector('#guy-one-rotate-speed');
 const guyTwoRotateSpeed = document.querySelector('#guy-two-rotate-speed');
+const guyOneCornerPadding = document.querySelector('#guy-one-corner-padding');
+const guyTwoCornerPadding = document.querySelector('#guy-two-corner-padding');
 const guyOneCategory = document.querySelector('#guy-one');
 const guyTwoCategory = document.querySelector('#guy-two');
 const spritesPage = document.querySelector('#sprites-page');
@@ -220,8 +222,6 @@ const moveNodeUpButton = document.querySelector('#move-node-up');
 const moveNodeDownButton = document.querySelector('#move-node-down');
 const duplicateNodeButton = document.querySelector('#duplicate-node');
 const undoNodeButton = document.querySelector('#undo-node');
-const copyNodeButton = document.querySelector('#copy-node');
-let copiedNode = null;
 let undoSnapshots = [];
 let previousUndoSnapshot = '';
 const removeNodeButton = document.querySelector('#remove-node');
@@ -269,8 +269,8 @@ let visualMaskCanvas = null;
 let visualMaskContext = null;
 
 const squares = [
-  { x: 0, y: 0, startPositionX: null, startPositionY: null, vx: 112, vy: 82, startDirectionX: 112 / Math.hypot(112, 82), startDirectionY: 82 / Math.hypot(112, 82), speed: 246, defaultSpeed: 246, size: 100, defaultSize: 100, rotation: 0, rotateSpeed: 0, color: '#f27658', image: null, imageBounds: null, winImage: null, winImageBounds: null, hitboxMatchesPng: false, flipForEnemyEyeContact: true, reverseEyeContactFlip: false, eyeContactFlipAffectsHitbox: false, spriteReplace: null, health: maxHealth, maxHealth, defaultHealth: maxHealth, flashUntil: 0 },
-  { x: 0, y: 0, startPositionX: null, startPositionY: null, vx: -86, vy: -108, startDirectionX: -86 / Math.hypot(86, 108), startDirectionY: -108 / Math.hypot(86, 108), speed: 246, defaultSpeed: 246, size: 100, defaultSize: 100, rotation: 0, rotateSpeed: 0, color: '#5868d8', image: null, imageBounds: null, winImage: null, winImageBounds: null, hitboxMatchesPng: false, flipForEnemyEyeContact: true, reverseEyeContactFlip: false, eyeContactFlipAffectsHitbox: false, spriteReplace: null, health: maxHealth, maxHealth, defaultHealth: maxHealth, flashUntil: 0 },
+  { x: 0, y: 0, startPositionX: null, startPositionY: null, vx: 112, vy: 82, startDirectionX: 112 / Math.hypot(112, 82), startDirectionY: 82 / Math.hypot(112, 82), speed: 246, defaultSpeed: 246, size: 100, defaultSize: 100, rotation: 0, rotateSpeed: 0, cornerPadding: 0, color: '#f27658', image: null, imageBounds: null, winImage: null, winImageBounds: null, hitboxMatchesPng: false, flipForEnemyEyeContact: true, reverseEyeContactFlip: false, eyeContactFlipAffectsHitbox: false, spriteReplace: null, health: maxHealth, maxHealth, defaultHealth: maxHealth, flashUntil: 0 },
+  { x: 0, y: 0, startPositionX: null, startPositionY: null, vx: -86, vy: -108, startDirectionX: -86 / Math.hypot(86, 108), startDirectionY: -108 / Math.hypot(86, 108), speed: 246, defaultSpeed: 246, size: 100, defaultSize: 100, rotation: 0, rotateSpeed: 0, cornerPadding: 0, color: '#5868d8', image: null, imageBounds: null, winImage: null, winImageBounds: null, hitboxMatchesPng: false, flipForEnemyEyeContact: true, reverseEyeContactFlip: false, eyeContactFlipAffectsHitbox: false, spriteReplace: null, health: maxHealth, maxHealth, defaultHealth: maxHealth, flashUntil: 0 },
 ];
 
 guyOneHitbox.addEventListener('change', () => { squares[1].hitboxMatchesPng = guyOneHitbox.checked; });
@@ -317,8 +317,19 @@ function connectRotateSpeed(input, square) {
   });
 }
 
+function connectCornerPadding(input, square) {
+  input.addEventListener('input', () => {
+    const value = input.value === '' ? 0 : input.valueAsNumber;
+    if (!Number.isFinite(value)) return;
+    square.cornerPadding = Math.max(0, Math.min(Number(input.max), value));
+    input.value = square.cornerPadding;
+  });
+}
+
 connectRotateSpeed(guyOneRotateSpeed, squares[1]);
 connectRotateSpeed(guyTwoRotateSpeed, squares[0]);
+connectCornerPadding(guyOneCornerPadding, squares[1]);
+connectCornerPadding(guyTwoCornerPadding, squares[0]);
 
 function updateEditorView() {
   const showGuyOne = categorySelect.value === 'guy-one';
@@ -647,7 +658,15 @@ function connectSpriteImageUpload(input, square, imageProperty, preview) {
     const urlProperty = imageProperty === 'image' ? 'imageURL' : 'winImageURL';
     if (square[urlProperty]) URL.revokeObjectURL(square[urlProperty]);
     square[urlProperty] = imageUrl;
-    image.onload = () => {
+    image.onload = async () => {
+      const frames = imageProperty === 'image' ? await decodeAnimatedGif(file) : [];
+      if (square[urlProperty] !== imageUrl) {
+        frames.forEach(frame => frame.image.close());
+        return;
+      }
+      image.originalMimeType = file.type;
+      image.animatedFrames = frames;
+      image.animationStartedAt = performance.now();
       square[imageProperty] = image;
       square[imageProperty === 'image' ? 'imageBounds' : 'winImageBounds'] = getImageAlphaBounds(image);
       preview.src = imageUrl;
@@ -865,7 +884,7 @@ function updateVisualPreview(node = draftNodes.find(item => item.id === selected
   const previewOpacity = node.opacity == null
     ? (isFlash ? 50 : 100)
     : Math.max(0, Math.min(isFlash ? 200 : 100, Number(node.opacity) || 0));
-  visualNodePreview.style.setProperty('--preview-opacity', isFlash ? '1' : String(previewOpacity / 100));
+  visualNodePreview.style.setProperty('--preview-opacity', String(previewOpacity / 100));
   visualPreviewGuyImage.style.transform = isSpriteReplace ? `rotate(${Number(node.rotation) || 0}deg)` : '';
   visualPreviewGuyImage.style.opacity = '1';
   visualNodePreview.classList.toggle('is-sprite-replace', isSpriteReplace);
@@ -1086,7 +1105,6 @@ function renderHitboxTargetPicker(container, node, property, multiple = true) {
 function updateNodeMoveButtons() {
   const index = draftNodes.findIndex(node => node.id === selectedNodeId);
   undoNodeButton.disabled = undoSnapshots.length === 0;
-  copyNodeButton.disabled = index < 0;
   moveNodeUpButton.disabled = index <= 0;
   moveNodeDownButton.disabled = index < 0 || index >= draftNodes.length - 1;
   duplicateNodeButton.disabled = index < 0;
@@ -1100,13 +1118,6 @@ undoNodeButton.addEventListener('click', () => {
   selectedNodeId = draftNodes.some(node => node.id === selectedNodeId) ? selectedNodeId : null;
   renderTimeline();
   if (selectedNodeId !== null) selectTimelineNode(selectedNodeId);
-});
-
-copyNodeButton.addEventListener('click', () => {
-  const node = draftNodes.find(item => item.id === selectedNodeId);
-  if (!node) return;
-  copiedNode = { ...node, id: undefined, destinations: node.destinations?.map(destination => ({ ...destination })) };
-  movesList.querySelectorAll('.paste-node').forEach(button => { button.disabled = false; });
 });
 
 function moveSelectedNode(offset) {
@@ -1318,7 +1329,9 @@ function selectTimelineNode(nodeId) {
     return;
   }
   if (node.type === 'skip') {
-    skipNodeSelected.textContent = draftNodes.find(item => item.id === node.skipNodeId) ? getTimelineNodeLabel(draftNodes.find(item => item.id === node.skipNodeId)) : 'No node selected';
+    const selectedSkipNode = draftNodes.find(item => item.id === node.skipNodeId);
+    skipNodeSelected.hidden = !selectedSkipNode;
+    skipNodeSelected.textContent = selectedSkipNode ? getTimelineNodeLabel(selectedSkipNode) : '';
     skipAfterHitLandedInput.checked = Boolean(node.afterHitLanded);
     skipTargetPicker.hidden = !node.afterHitLanded;
     if (node.afterHitLanded) renderHitboxTargetPicker(skipTargetPicker, node, 'afterHitNodeIds');
@@ -1347,6 +1360,7 @@ function selectTimelineNode(nodeId) {
         option.addEventListener('click', () => {
           node.skipNodeId = candidate.id;
           skipNodeSelected.textContent = getTimelineNodeLabel(candidate);
+          skipNodeSelected.hidden = false;
           skipNodeTargetPicker.hidden = true;
         });
         skipNodeTargetPicker.append(option);
@@ -2205,6 +2219,9 @@ async function assetToDataUrl(url) {
 async function imageToDataUrl(image) {
   if (!image) return null;
   if (image.src?.startsWith('data:')) return image.src;
+  if (image.originalMimeType === 'image/gif') {
+    try { return await blobToDataUrl(await (await fetch(image.src)).blob()); } catch {}
+  }
   try {
     const copy = document.createElement('canvas');
     copy.width = image.naturalWidth;
@@ -2220,8 +2237,13 @@ function imageFromDataUrl(source) {
   if (!source) return Promise.resolve(null);
   return new Promise(resolve => {
     const image = new Image();
-    image.onload = () => {
+    image.onload = async () => {
       image.imageBounds = getImageAlphaBounds(image);
+      image.originalMimeType = source.match(/^data:([^;,]+)/)?.[1] || '';
+      if (image.originalMimeType === 'image/gif') {
+        try { image.animatedFrames = await decodeAnimatedGif(await (await fetch(source)).blob()); } catch { image.animatedFrames = []; }
+      }
+      image.animationStartedAt = performance.now();
       resolve(image);
     };
     image.onerror = () => resolve(null);
@@ -2250,6 +2272,7 @@ async function exportSelectedGuy() {
       speed: square.defaultSpeed,
       size: square.defaultSize,
       rotateSpeed: square.rotateSpeed,
+      cornerPadding: square.cornerPadding,
       hitboxMatchesPng: square.hitboxMatchesPng,
       flipForEnemyEyeContact: square.flipForEnemyEyeContact,
       reverseEyeContactFlip: square.reverseEyeContactFlip,
@@ -2280,6 +2303,7 @@ async function importSelectedGuy(file) {
   square.defaultSpeed = square.speed = Number(data.speed) || 246;
   square.defaultSize = square.size = Number(data.size) || 100;
   square.rotateSpeed = Number(data.rotateSpeed) || 0;
+  square.cornerPadding = Math.max(0, Math.min(120, Number(data.cornerPadding) || 0));
   square.hitboxMatchesPng = Boolean(data.hitboxMatchesPng);
   square.flipForEnemyEyeContact = data.flipForEnemyEyeContact !== false;
   square.reverseEyeContactFlip = Boolean(data.reverseEyeContactFlip);
@@ -2302,6 +2326,7 @@ async function importSelectedGuy(file) {
   if (winImage) { winPreview.src = winImage.src; winPreview.hidden = false; } else { winPreview.removeAttribute('src'); winPreview.hidden = true; }
   spriteSettings.querySelector('#' + guyId + '-hitbox').checked = square.hitboxMatchesPng;
   spriteSettings.querySelector('#' + guyId + '-rotate-speed').value = square.rotateSpeed;
+  spriteSettings.querySelector('#' + guyId + '-corner-padding').value = square.cornerPadding;
   spriteSettings.querySelector('#' + guyId + '-eye-contact').checked = square.flipForEnemyEyeContact;
   spriteSettings.querySelector('#' + guyId + '-eye-contact-reverse').checked = square.reverseEyeContactFlip;
   spriteSettings.querySelector('#' + guyId + '-eye-contact-hitbox').checked = square.eyeContactFlipAffectsHitbox;
@@ -2376,19 +2401,35 @@ function renderMoves() {
     editButton.setAttribute('aria-label', `Edit ${move.name}`);
     editButton.addEventListener('click', () => openMoveEditor(move, editButton));
 
-    const pasteButton = document.createElement('button');
-    pasteButton.type = 'button';
-    pasteButton.className = 'paste-node';
-    pasteButton.textContent = 'Copy';
-    pasteButton.disabled = !copiedNode;
-    pasteButton.setAttribute('aria-label', `Copy the saved node into ${move.name}`);
-    pasteButton.addEventListener('click', () => {
-      if (!copiedNode) return;
-      openMoveEditor(move, pasteButton);
-      const pastedNode = { ...copiedNode, id: nextNodeId++, targetNodeIds: [], afterHitNodeIds: [], skipNodeId: null, destinations: copiedNode.destinations?.map(destination => ({ ...destination, nodeId: null })) };
-      draftNodes.push(pastedNode);
-      renderTimeline();
-      selectTimelineNode(pastedNode.id);
+    const copyButton = document.createElement('button');
+    copyButton.type = 'button';
+    copyButton.textContent = 'Copy';
+    copyButton.setAttribute('aria-label', `Duplicate ${move.name}`);
+    copyButton.addEventListener('click', () => {
+      const sourceNodes = move.nodes ?? [];
+      const nodeIds = new Map(sourceNodes.map(node => [node.id, nextNodeId++]));
+      const nodes = sourceNodes.map(node => {
+        const duplicate = {
+          ...node,
+          id: nodeIds.get(node.id),
+          imageBounds: node.imageBounds ? { ...node.imageBounds } : node.imageBounds,
+          targetNodeIds: node.targetNodeIds?.map(id => nodeIds.get(id) ?? id),
+          afterHitNodeIds: node.afterHitNodeIds?.map(id => nodeIds.get(id) ?? id),
+          skipNodeId: node.skipNodeId == null ? null : (nodeIds.get(node.skipNodeId) ?? null),
+          destinations: node.destinations?.map(destination => ({ ...destination, nodeId: nodeIds.get(destination.nodeId) ?? null })),
+        };
+        return duplicate;
+      });
+      movesByGuy[categorySelect.value].push({
+        ...move,
+        id: nextMoveId++,
+        name: `${move.name} Copy`,
+        targetSides: [...(move.targetSides ?? [])],
+        approachSides: [...(move.approachSides ?? [])],
+        damageFromSides: [...(move.damageFromSides ?? [])],
+        nodes,
+      });
+      renderMoves();
     });
 
     const deleteButton = document.createElement('button');
@@ -2400,7 +2441,7 @@ function renderMoves() {
       renderMoves();
     });
 
-    card.append(nameInput, editButton, pasteButton, deleteButton);
+    card.append(nameInput, editButton, copyButton, deleteButton);
     movesList.append(card);
   }
 }
@@ -2814,7 +2855,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
           previousVy: mover.vy,
           previousSpeed: mover.speed,
           preview,
-          changesDirection: Boolean(node.changesDirection),
+          changesDirection: Boolean(node.changesDirection || node.trackOpposite),
           complete: null,
         };
         mover.vx = Math.cos(direction) * speed;
@@ -3396,6 +3437,10 @@ function positionSquaresAtStart() {
   }
 }
 
+function getSquareCornerPadding(square) {
+  return Math.min(Math.max(0, Number(square.cornerPadding) || 0), square.size / 2);
+}
+
 function getDisplayImage(square, opponent) {
   if (showWinSprites && opponent.health <= 0 && square.winImage) return square.winImage;
   if (square.spriteReplace && simulationTime < square.spriteReplace.endsAt) return square.spriteReplace.image;
@@ -3406,8 +3451,8 @@ function getFlashedImage(image) {
   let flashedImage = flashedImageCache.get(image);
   if (flashedImage) return flashedImage;
   flashedImage = document.createElement('canvas');
-  flashedImage.width = image.naturalWidth;
-  flashedImage.height = image.naturalHeight;
+  flashedImage.width = image.naturalWidth || image.width;
+  flashedImage.height = image.naturalHeight || image.height;
   const flashContext = flashedImage.getContext('2d');
   flashContext.drawImage(image, 0, 0);
   flashContext.globalCompositeOperation = 'source-atop';
@@ -3796,12 +3841,14 @@ function drawDebugHitboxes() {
     ctx.font = '700 14px "DM Mono", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
+    ctx.setLineDash([]);
+    ctx.lineJoin = 'round';
     ctx.lineWidth = 3;
     ctx.strokeStyle = '#20211f';
     ctx.fillStyle = '#fff';
     const label = String(Math.max(0, Math.ceil(remaining)));
     const x = square.x;
-    const y = square.y + square.size / 2 + 8;
+    const y = square.y + square.size / 2 + 24;
     ctx.strokeText(label, x, y);
     ctx.fillText(label, x, y);
     ctx.restore();
@@ -3854,9 +3901,56 @@ function drawDebugHitboxes() {
 
   for (let index = 0; index < squares.length; index++) {
     const square = squares[index];
-    if (square.health > 0) drawDebugGuyDirections(square, squares[1 - index]);
+    if (square.health > 0) {
+      drawDebugGuyDirections(square, squares[1 - index]);
+      drawDebugMovementArrow(square);
+    }
   }
 
+  ctx.restore();
+}
+
+function drawDebugMovementArrow(square) {
+  const velocity = Math.hypot(square.vx, square.vy);
+  const directionX = velocity > 0 ? square.vx / velocity : square.startDirectionX;
+  const directionY = velocity > 0 ? square.vy / velocity : square.startDirectionY;
+  const startX = square.x - directionX * 14;
+  const startY = square.y - directionY * 14;
+  const tipX = square.x + directionX * 14;
+  const tipY = square.y + directionY * 14;
+  const headLength = 10;
+  const headWidth = 8;
+  const baseX = tipX - directionX * headLength;
+  const baseY = tipY - directionY * headLength;
+  const perpX = -directionY * headWidth;
+  const perpY = directionX * headWidth;
+
+  ctx.save();
+  ctx.setLineDash([]);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#20211f';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(tipX, tipY);
+  ctx.stroke();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2.25;
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(tipX, tipY);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(tipX, tipY);
+  ctx.lineTo(baseX + perpX, baseY + perpY);
+  ctx.lineTo(baseX - perpX, baseY - perpY);
+  ctx.closePath();
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#20211f';
+  ctx.lineWidth = 2;
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -4128,7 +4222,7 @@ function drawActiveImageVisuals(dt) {
     visualMaskContext.rotate(square.rotation);
     const half = square.size / 2;
     visualMaskContext.beginPath();
-    visualMaskContext.roundRect(-half, -half, square.size, square.size, 7);
+    visualMaskContext.roundRect(-half, -half, square.size, square.size, getSquareCornerPadding(square));
     visualMaskContext.clip();
     visualMaskContext.drawImage(maskImage, -half, -half, square.size, square.size);
     visualMaskContext.restore();
@@ -4261,9 +4355,13 @@ function draw(time) {
     ctx.rotate(square.rotation + facingRotation + (replacement?.rotation || 0) * Math.PI / 180);
     if (flipSprite) ctx.scale(-1, 1);
     ctx.beginPath();
-    ctx.roundRect(-half, -half, square.size, square.size, 7);
+    ctx.roundRect(-half, -half, square.size, square.size, getSquareCornerPadding(square));
     if (displayImage) {
-      const displayFrame = replacement ? getAnimatedVisualFrame(displayImage, replacement.animationStartedAt) : displayImage;
+      const displayFrame = replacement
+        ? getAnimatedVisualFrame(displayImage, replacement.animationStartedAt)
+        : displayImage === square.image
+          ? getAnimatedVisualFrame(displayImage, displayImage.animationStartedAt)
+          : displayImage;
       ctx.save();
       ctx.clip();
       if (replacement) ctx.globalAlpha = 1;
@@ -4276,9 +4374,13 @@ function draw(time) {
     const flashOpacity = getActiveFlashOpacity(index);
     if (flashOpacity > 0) {
       if (displayImage) {
+        ctx.save();
         ctx.globalAlpha = Math.min(1, flashOpacity);
-        ctx.drawImage(getFlashedImage(displayImage), -half, -half, square.size, square.size);
-        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.roundRect(-half, -half, square.size, square.size, getSquareCornerPadding(square));
+        ctx.clip();
+        ctx.drawImage(getFlashedImage(displayImage === square.image ? getAnimatedVisualFrame(displayImage, displayImage.animationStartedAt) : displayImage), -half, -half, square.size, square.size);
+        ctx.restore();
       } else {
         ctx.save();
         ctx.globalAlpha = Math.min(1, flashOpacity);

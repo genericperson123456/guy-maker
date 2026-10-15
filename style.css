@@ -24,7 +24,8 @@ body {
 .maker-panel {
   align-self: flex-start;
   width: 280px;
-  height: 640px;
+  min-height: 640px;
+  height: auto;
   flex: 0 0 280px;
   padding: 22px;
   border: 1px solid #e3e3de;
@@ -297,8 +298,6 @@ h1 {
   border: 6px solid #000;
   border-radius: 0;
   background-color: #f4f4f1;
-  background-image: radial-gradient(#e9e9e4 0.7px, transparent 0.7px);
-  background-size: 20px 20px;
   box-shadow: 0 12px 34px rgb(35 35 25 / 4%);
 }
 
@@ -1629,13 +1628,12 @@ body.watermark-mode {
 .random-skip-properties { display: grid; gap: 12px; }
 .skip-variable-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
 .skip-variable-fields input { min-width: 0; width: 100%; }
-#copy-node { width: auto; padding: 0 7px; }
 #undo-node { font-size: 17px; }
 .move-card button:disabled { color: #a2a39c; background: #f0f0ec; cursor: default; }
 
 @media (max-width: 600px) {
   body { flex-direction: column; align-items: stretch; padding: 118px 18px 18px; gap: 14px; }
-  .maker-panel { width: 100%; height: 640px; flex-basis: auto; padding: 20px; }
+  .maker-panel { width: 100%; min-height: 0; height: auto; flex-basis: auto; padding: 20px; }
   .stage { width: 100%; flex-basis: auto; }
   .move-editor-workspace { padding-top: 16px; }
   .move-condition-row { grid-template-columns: 1fr; gap: 10px; }

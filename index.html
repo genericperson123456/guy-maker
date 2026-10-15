@@ -39,6 +39,7 @@
           </div>
           <label class="hitbox-toggle"><input id="guy-one-hitbox" type="checkbox" />Hitbox matches image</label>
           <label class="sprite-number-setting">Rotate Speed<input id="guy-one-rotate-speed" type="number" min="-3600" max="3600" step="1" value="0" /></label>
+          <label class="sprite-number-setting">Corner Padding<input id="guy-one-corner-padding" type="number" min="0" max="120" step="1" value="0" /></label>
         </section>
         <section class="guy-category" id="guy-two" aria-labelledby="guy-two-label" hidden>
           <h3 id="guy-two-label">Idle Sprite</h3>
@@ -56,6 +57,7 @@
           </div>
           <label class="hitbox-toggle"><input id="guy-two-hitbox" type="checkbox" />Hitbox matches image</label>
           <label class="sprite-number-setting">Rotate Speed<input id="guy-two-rotate-speed" type="number" min="-3600" max="3600" step="1" value="0" /></label>
+          <label class="sprite-number-setting">Corner Padding<input id="guy-two-corner-padding" type="number" min="0" max="120" step="1" value="0" /></label>
         </section>
       </section>
       <section class="editor-page" id="statistics-page" hidden>
@@ -376,6 +378,7 @@
                 <div id="state-hitbox-target-picker" class="node-target-picker" hidden></div>
               </div>
               <div id="random-skip-properties" class="wait-properties random-skip-properties" hidden>
+                <button id="random-skip-add" class="node-target-button" type="button">Select node</button>
                 <label class="sound-cancel-setting"><input id="random-skip-after-hit-landed" type="checkbox" />After Hit Landed</label>
                 <div id="random-skip-hitbox-target-picker" class="node-target-picker" hidden></div>
                 <label class="hitbox-damage-setting">If variable
@@ -384,13 +387,12 @@
                 <label class="hitbox-anchored-setting"><input id="random-skip-target-of-hitbox" type="checkbox" />Target of hitbox</label>
                 <div id="random-skip-target-picker" class="node-target-picker" hidden></div>
                 <div id="random-skip-destinations" class="random-skip-destinations"></div>
-                <button id="random-skip-add" class="node-target-button" type="button">Add node</button>
               </div>
               <div id="skip-properties" class="wait-properties" hidden>
                 <span class="skip-property-label">Node</span>
                 <button id="skip-node-target" class="node-target-button" type="button">Select node</button>
                 <div id="skip-node-target-picker" class="node-target-picker" hidden></div>
-                <div id="skip-node-selected" class="node-target-selected">No node selected</div>
+                <div id="skip-node-selected" class="node-target-selected" hidden></div>
                 <label class="sound-cancel-setting"><input id="skip-after-hit-landed" type="checkbox" />After Hit Landed</label>
                 <div id="skip-hitbox-target-picker" class="node-target-picker" hidden></div>
                 <label class="hitbox-damage-setting">If variable
@@ -538,7 +540,6 @@
           <button id="move-node-down" class="move-node-order" type="button" aria-label="Move selected node down" disabled>↓</button>
           <button id="duplicate-node" class="move-node-order" type="button" aria-label="Duplicate selected node" title="Duplicate selected node" disabled>⧉</button>
           <button id="undo-node" class="move-node-order" type="button" aria-label="Undo last action" title="Undo last action" disabled>↶</button>
-          <button id="copy-node" class="move-node-order" type="button" aria-label="Copy selected node" title="Copy selected node" disabled>Copy</button>
           <button id="remove-node" class="move-node-order remove-node" type="button" aria-label="Remove selected node" title="Remove selected node" disabled>−</button>
           <button id="preview-move" class="preview-move" type="button" disabled>Preview</button>
           <button id="finish-move" class="finish-move" type="button">Finish</button>
