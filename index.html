@@ -6,7 +6,6 @@
     <meta name="theme-color" content="#f4f4f1" />
     <link rel="icon" href="data:," />
     <title>Guy Maker</title>
-    <link rel="icon" type="image/png" href="./gravityguy.png">
     <link rel="stylesheet" href="./style.css" />
     <script type="module" src="./app.js"></script>
   </head>
@@ -155,6 +154,7 @@
             <select id="move-condition-select" aria-label="Condition">
               <option value="collision" selected>Collision</option>
               <option value="damaged">Damaged</option>
+              <option value="direction">Direction</option>
               <option value="metronome">Metronome Tick</option>
               <option value="match-start">Match Start</option>
               <option value="click">Click</option>
@@ -199,6 +199,28 @@
                 </div>
               </details>
               <span>, run the timeline.</span>
+            </div>
+            <div class="condition-fields" id="direction-properties" hidden>
+              <span>When the other guy is on this guy's</span>
+              <details id="direction-side-picker" class="condition-multi-select">
+                <summary id="direction-side-summary" aria-label="Opponent sides">none</summary>
+                <div class="condition-choice-list">
+                  <label><input type="checkbox" value="left" />left</label>
+                  <label><input type="checkbox" value="right" />right</label>
+                  <label><input type="checkbox" value="down" />down</label>
+                  <label><input type="checkbox" value="up" />up</label>
+                </div>
+              </details>
+              <select id="direction-mode-select" aria-label="Direction matching mode">
+                <option value="side" selected>Side</option>
+                <option value="area">Area</option>
+              </select>
+              <span>, run the timeline</span>
+              <select id="direction-frequency-select" aria-label="Direction trigger frequency">
+                <option value="once" selected>Once</option>
+                <option value="constantly">Constantly</option>
+              </select>
+              <span>.</span>
             </div>
             <div class="condition-fields" id="metronome-properties" hidden>
               <span>After</span>
@@ -424,6 +446,7 @@
                   <span>seconds</span>
                 </label>
                 <label class="sound-cancel-setting"><input id="sound-node-fade" type="checkbox" />Fade in and out</label>
+                <label class="sound-cancel-setting"><input id="sound-node-stack" type="checkbox" />Stack</label>
                 <label class="sound-cancel-setting"><input id="sound-node-cancel" type="checkbox" />Cancel previous sounds</label>
               </div>
               <div id="wait-properties" class="wait-properties" hidden>
@@ -441,14 +464,15 @@
                 <label class="hitbox-damage-setting">Distance
                   <input id="velocity-distance" type="number" min="0" max="5000" step="1" value="200" />
                 </label>
-                <div class="hitbox-rotation-setting">
+                <div id="velocity-rotation-setting" class="hitbox-rotation-setting">
                   <span>Rotation</span>
                   <button id="velocity-rotation-dial" class="rotation-dial" type="button" role="slider" aria-label="Movement direction" aria-valuemin="0" aria-valuemax="359" aria-valuenow="90" aria-valuetext="90 degrees" tabindex="0"><span></span></button>
                   <input id="velocity-rotation-value" type="number" min="0" max="359" step="1" value="90" aria-label="Movement direction in degrees" />
                   <span>°</span>
                 </div>
-                <label class="hitbox-anchored-setting"><input id="velocity-track-enemy" type="checkbox" />Track enemy</label>
-                <label class="hitbox-anchored-setting"><input id="velocity-track-opposite" type="checkbox" />Track opposite</label>
+                <label class="hitbox-anchored-setting"><input id="velocity-random" type="checkbox" />Random</label>
+                <label id="velocity-track-enemy-setting" class="hitbox-anchored-setting"><input id="velocity-track-enemy" type="checkbox" />Track enemy</label>
+                <label id="velocity-track-opposite-setting" class="hitbox-anchored-setting"><input id="velocity-track-opposite" type="checkbox" />Track opposite</label>
                 <label class="hitbox-anchored-setting"><input id="velocity-changes-direction" type="checkbox" />Changes Movement Direction</label>
                 <label class="hitbox-anchored-setting"><input id="velocity-target-of-hitbox" type="checkbox" />Target of hitbox</label>
                 <div id="velocity-hitbox-target-picker" class="node-target-picker" hidden></div>

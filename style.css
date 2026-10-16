@@ -676,6 +676,7 @@ body.watermark-mode {
 .condition-fields[hidden] { display: none; }
 
 .condition-fields select { width: 96px; }
+#direction-frequency-select { width: 150px; flex: 0 0 150px; }
 .condition-fields input { width: 76px; }
 .condition-multi-select { position: relative; flex: 0 0 auto; }
 .condition-multi-select > summary {
@@ -951,11 +952,12 @@ body.watermark-mode {
 #state-properties { display: grid; gap: 16px; }
 #state-properties .state-type-setting { display: grid; justify-content: stretch; gap: 8px; }
 #state-properties[hidden] { display: none; }
-#state-node-type { width: 100%; min-width: 0; height: 34px; padding: 0 34px 0 9px; appearance: none; border: 1px solid #6ccbd6; border-radius: 0; color: #164047; background: #e9fbfc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23164047' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 11px center; font: 600 11px 'DM Sans', sans-serif; cursor: pointer; }
-#state-node-type:hover { border-color: #32aebe; background-color: #dcf7fa; }
-#state-node-type:focus-visible { outline: 2px solid #1599aa; outline-offset: 2px; }
+#state-node-type { width: 100%; min-width: 0; height: 34px; padding: 0 34px 0 9px; appearance: none; border: 1px solid #deded8; border-radius: 0; color: #454640; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23454640' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 11px center; font: 600 11px 'DM Sans', sans-serif; cursor: pointer; }
+#state-node-type:hover { border-color: #bdbdb5; background-color: #f4f4f1; }
+#state-node-type:focus-visible { outline: 2px solid #9a9a91; outline-offset: 2px; }
 .velocity-properties { display: grid; gap: 12px; margin-top: 12px; }
 .velocity-properties[hidden] { display: none; }
+.velocity-properties > [hidden] { display: none; }
 .variable-properties { display: grid; gap: 12px; margin-top: 12px; }
 .variable-properties[hidden] { display: none; }
 .variable-help { margin: 0; color: #777872; font-size: 10px; line-height: 1.45; }

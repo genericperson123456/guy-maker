@@ -69,6 +69,10 @@ const velocitySpeedInput = document.querySelector('#velocity-speed');
 const velocityDistanceInput = document.querySelector('#velocity-distance');
 const velocityRotationDial = document.querySelector('#velocity-rotation-dial');
 const velocityRotationInput = document.querySelector('#velocity-rotation-value');
+const velocityRotationSetting = document.querySelector('#velocity-rotation-setting');
+const velocityRandomInput = document.querySelector('#velocity-random');
+const velocityTrackEnemySetting = document.querySelector('#velocity-track-enemy-setting');
+const velocityTrackOppositeSetting = document.querySelector('#velocity-track-opposite-setting');
 const velocityTrackEnemyInput = document.querySelector('#velocity-track-enemy');
 const velocityTrackOppositeInput = document.querySelector('#velocity-track-opposite');
 const velocityChangesDirectionInput = document.querySelector('#velocity-changes-direction');
@@ -126,6 +130,7 @@ const soundNodeVolumeValue = document.querySelector('#sound-node-volume-value');
 const soundNodeCancelInput = document.querySelector('#sound-node-cancel');
 const soundNodeStartInput = document.querySelector('#sound-node-start');
 const soundNodeFadeInput = document.querySelector('#sound-node-fade');
+const soundNodeStackInput = document.querySelector('#sound-node-stack');
 const variableNodeButton = document.querySelector('#variable-node');
 const stateNodeButton = document.querySelector('#state-node');
 const stateNodeDetails = document.querySelector('#state-properties');
@@ -234,10 +239,15 @@ const approachSidePicker = document.querySelector('#approach-side-picker');
 const approachSideSummary = document.querySelector('#approach-side-summary');
 const damageFromPicker = document.querySelector('#damage-from-picker');
 const damageFromSummary = document.querySelector('#damage-from-summary');
+const directionSidePicker = document.querySelector('#direction-side-picker');
+const directionSideSummary = document.querySelector('#direction-side-summary');
+const directionModeSelect = document.querySelector('#direction-mode-select');
+const directionFrequencySelect = document.querySelector('#direction-frequency-select');
 const metronomeDelayInput = document.querySelector('#metronome-delay');
 const metronomeIntervalInput = document.querySelector('#metronome-interval');
 const collisionProperties = document.querySelector('#collision-properties');
 const damagedProperties = document.querySelector('#damaged-properties');
+const directionProperties = document.querySelector('#direction-properties');
 const metronomeProperties = document.querySelector('#metronome-properties');
 const matchStartProperties = document.querySelector('#match-start-properties');
 const clickProperties = document.querySelector('#click-properties');
@@ -399,11 +409,13 @@ startButton.addEventListener('click', () => {
 
 pauseButton.addEventListener('click', () => {
   isRunning = false;
+  stopAllSounds();
   startButton.disabled = false;
   pauseButton.disabled = true;
 });
 
 restartButton.addEventListener('click', () => {
+  stopAllSounds();
   if (activeMovePreview) {
     cancelActiveMovePreview();
     return;
@@ -836,13 +848,19 @@ function connectConditionSidePicker(picker, summary) {
 connectConditionSidePicker(targetSidePicker, targetSideSummary);
 connectConditionSidePicker(approachSidePicker, approachSideSummary);
 connectConditionSidePicker(damageFromPicker, damageFromSummary);
+function updateDirectionSidePicker() {
+  directionSideSummary.textContent = [...directionSidePicker.querySelectorAll('input:checked')].map(input => input.value).join(', ') || 'none';
+}
+directionSidePicker.addEventListener('change', updateDirectionSidePicker);
 setConditionSides(targetSidePicker, targetSideSummary, 'any');
 setConditionSides(approachSidePicker, approachSideSummary, 'any');
 setConditionSides(damageFromPicker, damageFromSummary, 'any');
+updateDirectionSidePicker();
 
 function updateMoveCondition() {
   collisionProperties.hidden = moveConditionSelect.value !== 'collision';
   damagedProperties.hidden = moveConditionSelect.value !== 'damaged';
+  directionProperties.hidden = moveConditionSelect.value !== 'direction';
   metronomeProperties.hidden = moveConditionSelect.value !== 'metronome';
   matchStartProperties.hidden = moveConditionSelect.value !== 'match-start';
   clickProperties.hidden = moveConditionSelect.value !== 'click';
@@ -929,9 +947,13 @@ function updateHitboxPreview() {
 const movesByGuy = { 'guy-one': [], 'guy-two': [] };
 const moveStackSettings = { 'guy-one': { stackMoves: true, selfStack: false }, 'guy-two': { stackMoves: true, selfStack: false } };
 const activeMoveTimelines = { 'guy-one': new Map(), 'guy-two': new Map() };
+let directionSideByMove = new WeakMap();
 const globalVariablesByGuy = { 'guy-one': new Map(), 'guy-two': new Map() };
 const damagePopups = [];
 const activeSoundNodes = new Set();
+const activeSounds = new Set();
+let activeSoundsByNode = new WeakMap();
+const soundCleanupByAudio = new WeakMap();
 const activeVisuals = [];
 const activeHitboxes = [];
 const activeProjectiles = [];
@@ -1208,6 +1230,7 @@ function selectTimelineNode(nodeId) {
     soundNodeVolumeInput.value = node.volume ?? 100;
     soundNodeVolumeValue.textContent = `${node.volume ?? 100}%`;
     soundNodeCancelInput.checked = Boolean(node.cancel);
+    soundNodeStackInput.checked = Boolean(node.stack);
     soundNodeStartInput.value = node.start ?? 0;
     soundNodeFadeInput.checked = Boolean(node.fade);
     soundNodeFileInput.onchange = () => {
@@ -1223,6 +1246,7 @@ function selectTimelineNode(nodeId) {
       soundNodeVolumeValue.textContent = `${node.volume}%`;
     };
     soundNodeCancelInput.onchange = () => { node.cancel = soundNodeCancelInput.checked; };
+    soundNodeStackInput.onchange = () => { node.stack = soundNodeStackInput.checked; };
     soundNodeStartInput.oninput = () => {
       const start = soundNodeStartInput.valueAsNumber;
       if (Number.isFinite(start)) node.start = Math.max(0, start);
@@ -1414,6 +1438,10 @@ function selectTimelineNode(nodeId) {
     velocityDistanceInput.value = node.distance ?? 200;
     node.rotation = node.rotation ?? (categorySelect.value === 'guy-one' ? 90 : 270);
     updateVelocityRotationDial(node.rotation);
+    velocityRandomInput.checked = Boolean(node.random);
+    velocityRotationSetting.hidden = Boolean(node.random);
+    velocityTrackEnemySetting.hidden = Boolean(node.random);
+    velocityTrackOppositeSetting.hidden = Boolean(node.random);
     velocityTrackEnemyInput.checked = Boolean(node.trackEnemy);
     velocityTrackOppositeInput.checked = Boolean(node.trackOpposite);
     velocityChangesDirectionInput.checked = Boolean(node.changesDirection);
@@ -1431,6 +1459,12 @@ function selectTimelineNode(nodeId) {
       if (!Number.isFinite(value)) return;
       node.distance = Math.max(0, Math.min(5000, value));
       updateTimelineNodeLabel(node);
+    };
+    velocityRandomInput.onchange = () => {
+      node.random = velocityRandomInput.checked;
+      velocityRotationSetting.hidden = node.random;
+      velocityTrackEnemySetting.hidden = node.random;
+      velocityTrackOppositeSetting.hidden = node.random;
     };
     velocityTrackEnemyInput.onchange = () => {
       node.trackEnemy = velocityTrackEnemyInput.checked;
@@ -2066,6 +2100,7 @@ velocityNodeButton.addEventListener('click', () => {
     speed: 300,
     distance: 200,
     rotation: categorySelect.value === 'guy-one' ? 90 : 270,
+    random: false,
     trackEnemy: false,
     trackOpposite: false,
     changesDirection: false,
@@ -2087,7 +2122,7 @@ velocityNodeButton.addEventListener('click', () => {
   renderTimeline();
 });
 soundNodeButton.addEventListener('click', () => {
-  draftNodes.push({ id: nextNodeId++, type: 'sound', soundURL: defaultHitboxSound, soundName: defaultHitboxSoundName, volume: 100, start: 0, fade: false, cancel: false });
+  draftNodes.push({ id: nextNodeId++, type: 'sound', soundURL: defaultHitboxSound, soundName: defaultHitboxSoundName, volume: 100, start: 0, fade: false, stack: false, cancel: false });
   selectedNodeId = null;
   hitboxNodeDetails.hidden = true;
   projectileNodeDetails.hidden = true;
@@ -2427,6 +2462,7 @@ function renderMoves() {
         targetSides: [...(move.targetSides ?? [])],
         approachSides: [...(move.approachSides ?? [])],
         damageFromSides: [...(move.damageFromSides ?? [])],
+        directionSides: [...(move.directionSides ?? [])],
         nodes,
       });
       renderMoves();
@@ -2460,6 +2496,12 @@ function applyMoveToEditor(move) {
   setConditionSides(targetSidePicker, targetSideSummary, move?.targetSides ?? move?.targetSide ?? 'any');
   setConditionSides(approachSidePicker, approachSideSummary, move?.approachSides ?? move?.approachSide ?? 'any');
   setConditionSides(damageFromPicker, damageFromSummary, move?.damageFromSides ?? 'any');
+  directionSidePicker.querySelectorAll('input').forEach(input => {
+    input.checked = (move?.directionSides ?? []).includes(input.value);
+  });
+  directionModeSelect.value = move?.directionMode ?? 'side';
+  directionFrequencySelect.value = move?.directionFrequency ?? 'once';
+  updateDirectionSidePicker();
   metronomeDelayInput.value = move?.delay ?? 0;
   metronomeIntervalInput.value = move?.interval ?? 1;
   hitboxNodeDetails.hidden = true;
@@ -2511,6 +2553,9 @@ finishMoveButton.addEventListener('click', () => {
     targetSides: [...targetSidePicker.querySelectorAll('input:checked')].map(input => input.value),
     approachSides: [...approachSidePicker.querySelectorAll('input:checked')].map(input => input.value),
     damageFromSides: [...damageFromPicker.querySelectorAll('input:checked')].map(input => input.value),
+    directionSides: [...directionSidePicker.querySelectorAll('input:checked')].map(input => input.value),
+    directionMode: directionModeSelect.value,
+    directionFrequency: directionFrequencySelect.value,
     delay: Number(metronomeDelayInput.value) || 0,
     interval: Number(metronomeIntervalInput.value) || 1,
     nodes: draftNodes.map(node => ({ ...node })),
@@ -2838,11 +2883,13 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
           mover.speed = activeMove.previousSpeed;
           activeMove.complete?.(false);
         }
-        const direction = node.trackEnemy
-          ? Math.atan2(opponent.y - mover.y, opponent.x - mover.x)
-          : node.trackOpposite
-            ? Math.atan2(mover.vy, mover.vx) + Math.PI
-          : (Number(node.rotation ?? 90) - 90) * Math.PI / 180;
+        const direction = node.random
+          ? Math.random() * Math.PI * 2
+          : node.trackEnemy
+            ? Math.atan2(opponent.y - mover.y, opponent.x - mover.x)
+            : node.trackOpposite
+              ? Math.atan2(mover.vy, mover.vx) + Math.PI
+              : (Number(node.rotation ?? 90) - 90) * Math.PI / 180;
         const movement = {
           squareIndex: moverIndex,
           direction,
@@ -3115,13 +3162,9 @@ function cancelActiveMovePreview() {
   for (let index = activeVisuals.length - 1; index >= 0; index--) {
     if (!preview.visuals.has(activeVisuals[index])) activeVisuals.splice(index, 1);
   }
-  for (const sound of activeSoundNodes) {
+  for (const sound of [...activeSounds]) {
     if (preview.sounds.has(sound)) continue;
-    clearInterval(sound.fadeTimer);
-    sound.fadeTimer = null;
-    sound.pause();
-    sound.currentTime = 0;
-    activeSoundNodes.delete(sound);
+    stopTrackedSound(sound);
   }
   for (let index = damagePopups.length - 1; index >= 0; index--) {
     if (!preview.damagePopups.has(damagePopups[index])) damagePopups.splice(index, 1);
@@ -3145,7 +3188,7 @@ async function previewDraftMove() {
     hitboxes: new Set(activeHitboxes),
     velocityMoves: new Set(activeVelocityMoves),
     visuals: new Set(activeVisuals),
-    sounds: new Set(activeSoundNodes),
+    sounds: new Set(activeSounds),
     damagePopups: new Set(damagePopups),
     spriteReplacements: squares.map(square => square.spriteReplace),
   };
@@ -3196,16 +3239,47 @@ async function previewDraftMove() {
 
 let soundNodeAudioContext = null;
 
+function stopTrackedSound(sound) {
+  clearInterval(sound.fadeTimer);
+  sound.fadeTimer = null;
+  sound.pause();
+  sound.currentTime = 0;
+  soundCleanupByAudio.get(sound)?.();
+}
+
+function stopAllSounds() {
+  for (const sound of [...activeSounds]) stopTrackedSound(sound);
+  for (const sound of [...wallBounceAudio, winnerAudio]) {
+    sound.pause();
+    if (sound.readyState > 0) sound.currentTime = 0;
+  }
+  activeSoundsByNode = new WeakMap();
+}
+
+function playTransientSound(url) {
+  if (!url) return;
+  const sound = new Audio(url);
+  activeSounds.add(sound);
+  let cleaned = false;
+  const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
+    activeSounds.delete(sound);
+  };
+  soundCleanupByAudio.set(sound, cleanup);
+  sound.addEventListener('ended', cleanup, { once: true });
+  sound.addEventListener('error', cleanup, { once: true });
+  sound.play().catch(cleanup);
+}
+
 function playSoundNode(node) {
   if (!node.soundURL) return;
   if (node.cancel) {
-    for (const sound of activeSoundNodes) {
-      clearInterval(sound.fadeTimer);
-      sound.fadeTimer = null;
-      sound.pause();
-      sound.currentTime = 0;
-    }
-    activeSoundNodes.clear();
+    for (const sound of [...activeSoundNodes]) stopTrackedSound(sound);
+  }
+  const nodeSounds = activeSoundsByNode.get(node) ?? new Set();
+  if (!node.stack) {
+    for (const sound of [...nodeSounds]) stopTrackedSound(sound);
   }
   const sound = new Audio(node.soundURL);
   const start = Math.max(0, Number(node.start) || 0);
@@ -3227,17 +3301,28 @@ function playSoundNode(node) {
     else sound.volume = Math.min(1, value);
   };
   activeSoundNodes.add(sound);
+  activeSounds.add(sound);
+  nodeSounds.add(sound);
+  activeSoundsByNode.set(node, nodeSounds);
+  let cleaned = false;
   const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
     clearInterval(sound.fadeTimer);
     sound.fadeTimer = null;
     activeSoundNodes.delete(sound);
+    activeSounds.delete(sound);
+    nodeSounds.delete(sound);
+    if (nodeSounds.size === 0) activeSoundsByNode.delete(node);
   };
+  soundCleanupByAudio.set(sound, cleanup);
   sound.addEventListener('ended', cleanup, { once: true });
   sound.addEventListener('error', cleanup, { once: true });
   let playbackStarted = false;
   const beginPlayback = () => {
     if (playbackStarted) return;
     playbackStarted = true;
+    if (!activeSoundNodes.has(sound)) { cleanup(); return; }
     if (start >= sound.duration) { cleanup(); return; }
     sound.currentTime = start;
     const fadeDuration = node.fade && Number.isFinite(sound.duration)
@@ -3281,13 +3366,7 @@ function finishMatch() {
   startButton.disabled = true;
   pauseButton.disabled = true;
   damagePopups.length = 0;
-  for (const sound of activeSoundNodes) {
-    clearInterval(sound.fadeTimer);
-    sound.fadeTimer = null;
-    sound.pause();
-    sound.currentTime = 0;
-  }
-  activeSoundNodes.clear();
+  for (const sound of [...activeSoundNodes]) stopTrackedSound(sound);
   for (const projectile of [...activeProjectiles]) {
     removeProjectileFromPlay(projectile);
     projectile.cancelled = true;
@@ -3333,7 +3412,17 @@ function getDamageSourceSide(attackerIndex, targetIndex) {
   return dy < 0 ? 'up' : 'down';
 }
 
+function getOpponentSide(guyIndex) {
+  const guy = squares[guyIndex];
+  const opponent = squares[1 - guyIndex];
+  const dx = opponent.x - guy.x;
+  const dy = opponent.y - guy.y;
+  if (Math.abs(dx) >= Math.abs(dy)) return dx < 0 ? 'left' : 'right';
+  return dy < 0 ? 'up' : 'down';
+}
+
 function resetMoveTimers() {
+  directionSideByMove = new WeakMap();
   for (const runningMoves of Object.values(activeMoveTimelines)) runningMoves.clear();
   for (const moves of Object.values(movesByGuy)) {
     for (const move of moves) {
@@ -3365,6 +3454,35 @@ function startMatchMoves() {
         move._nextTick = interval;
       } else {
         move._nextTick = delay;
+      }
+    }
+  }
+}
+
+function advanceDirectionMoves() {
+  if (matchEnded) return;
+  for (let guyIndex = 0; guyIndex < squares.length; guyIndex++) {
+    if (squares[guyIndex].health <= 0) continue;
+    const guy = squares[guyIndex];
+    const opponent = squares[1 - guyIndex];
+    const side = getOpponentSide(guyIndex);
+    for (const move of movesByGuy[getGuyId(guyIndex)]) {
+      if (move.condition !== 'direction') continue;
+      const selectedSides = move.directionSides ?? [];
+      const previousMatch = directionSideByMove.get(move);
+      const isAreaMode = (move.directionMode ?? 'side') === 'area';
+      const matches = isAreaMode
+        ? selectedSides.some(selectedSide =>
+          selectedSide === 'left' ? opponent.x < guy.x
+            : selectedSide === 'right' ? opponent.x > guy.x
+              : selectedSide === 'up' ? opponent.y < guy.y
+                : selectedSide === 'down' ? opponent.y > guy.y
+                  : false)
+        : selectedSides.includes(side);
+      directionSideByMove.set(move, isAreaMode ? matches : side);
+      if (matches && (move.directionFrequency === 'constantly' ||
+          (isAreaMode ? previousMatch !== true : side !== previousMatch))) {
+        runMoveTimeline(guyIndex, move);
       }
     }
   }
@@ -3557,10 +3675,7 @@ function updateActiveHitboxes() {
     const complete = hitbox.complete;
     hitbox.complete = null;
     complete?.(true);
-    if (hitbox.soundURL) {
-      const sound = new Audio(hitbox.soundURL);
-      sound.play().catch(() => {});
-    }
+    if (hitbox.soundURL) playTransientSound(hitbox.soundURL);
     if (hitbox.preview) {
       if (hitbox.damage > 0) {
         addDamagePopup(hitbox.targetIndex, target.x + (Math.random() * 24 - 12), target.y - target.size / 2 - 18, hitbox.damage);
@@ -3701,10 +3816,7 @@ function updateActiveProjectiles(dt) {
         }
         if (!projectile.piercing) removeProjectileFromPlay(projectile);
         projectile.lastHitAt = simulationTime;
-        if (projectile.soundURL) {
-          const sound = new Audio(projectile.soundURL);
-          sound.play().catch(() => {});
-        }
+        if (projectile.soundURL) playTransientSound(projectile.soundURL);
         if (projectile.damage > 0) {
           const damageTaken = projectile.preview ? projectile.damage : combatStateActive(target, 'IFrames') ? 0 : Math.min(target.health, projectile.damage);
           if (!projectile.preview) {
@@ -4330,6 +4442,7 @@ function draw(time) {
         runMovesForCondition(0, 'collision', collision.sideA);
         runMovesForCondition(1, 'collision', collision.sideB);
       }
+      advanceDirectionMoves();
     }
   }
 
