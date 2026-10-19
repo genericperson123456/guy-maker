@@ -115,7 +115,9 @@ defaultProjectileImage.onload = () => {
 };
 defaultProjectileImage.src = './uploads/bottle-of-beer-isolated-png-3396754066.png';
 const hitboxTimeInput = document.querySelector('#hitbox-time');
+const hitboxShapeInput = document.querySelector('#hitbox-shape');
 const hitboxAnchoredInput = document.querySelector('#hitbox-anchored');
+const hitboxHitSelfInput = document.querySelector('#hitbox-hit-self');
 const hitboxPositionXInput = document.querySelector('#hitbox-position-x');
 const hitboxPositionYInput = document.querySelector('#hitbox-position-y');
 const hitboxRotationDial = document.querySelector('#hitbox-rotation-dial');
@@ -153,6 +155,7 @@ const randomSkipNodeButton = document.querySelector('#random-skip-node');
 const randomSkipNodeDetails = document.querySelector('#random-skip-properties');
 const randomSkipDestinations = document.querySelector('#random-skip-destinations');
 const randomSkipAddButton = document.querySelector('#random-skip-add');
+const randomSkipStackNodesInput = document.querySelector('#random-skip-stack-nodes');
 const randomSkipAfterHitInput = document.querySelector('#random-skip-after-hit-landed');
 const randomSkipAfterHitPicker = document.querySelector('#random-skip-hitbox-target-picker');
 const randomSkipVariableNameInput = document.querySelector('#random-skip-variable-name');
@@ -161,7 +164,6 @@ const randomSkipTargetOfHitboxInput = document.querySelector('#random-skip-targe
 const randomSkipTargetPicker = document.querySelector('#random-skip-target-picker');
 const skipNodeDetails = document.querySelector('#skip-properties');
 const skipNodeTargetButton = document.querySelector('#skip-node-target');
-const skipNodeSelected = document.querySelector('#skip-node-selected');
 const skipNodeTargetPicker = document.querySelector('#skip-node-target-picker');
 const skipAfterHitLandedInput = document.querySelector('#skip-after-hit-landed');
 const skipTargetPicker = document.querySelector('#skip-hitbox-target-picker');
@@ -921,9 +923,13 @@ function updateHitboxPreview() {
   const height = Number(node.height);
   const previewWidth = Number.isFinite(width) ? width : square.size;
   const previewHeight = Number.isFinite(height) ? height : square.size;
+  const arenaWidth = canvas.clientWidth || defaultArenaSize || square.size;
+  const arenaHeight = canvas.clientHeight || arenaWidth;
   const largestDimension = Math.max(square.size, previewWidth, previewHeight);
   const scale = Math.min(0.24, 56 / largestDimension);
   const previewSize = size => `${size * scale}px`;
+  hitboxPreview.style.setProperty('--arena-preview-width', previewSize(arenaWidth));
+  hitboxPreview.style.setProperty('--arena-preview-height', previewSize(arenaHeight));
   hitboxPreview.style.setProperty('--guy-preview-width', previewSize(square.size));
   hitboxPreview.style.setProperty('--guy-preview-height', previewSize(square.size));
   hitboxPreview.style.setProperty('--hitbox-preview-width', previewSize(previewWidth));
@@ -931,6 +937,7 @@ function updateHitboxPreview() {
   hitboxPreview.style.setProperty('--hitbox-offset-x', `${(Number(node.x) || 0) * scale}px`);
   hitboxPreview.style.setProperty('--hitbox-offset-y', `${(Number(node.y) || 0) * scale}px`);
   hitboxPreview.style.setProperty('--hitbox-rotation', `${Number(node.rotation) || 0}deg`);
+  hitboxPreview.dataset.shape = node.shape || 'Square';
   hitboxPreview.style.setProperty('--guy-color', square.color);
   hitboxPreview.classList.toggle('has-guy-image', Boolean(square.image));
   hitboxPreviewGuyImage.hidden = !square.image;
@@ -957,6 +964,36 @@ const soundCleanupByAudio = new WeakMap();
 const activeVisuals = [];
 const activeHitboxes = [];
 const activeProjectiles = [];
+const familiarMaskWidth = 48;
+const familiarMaskHeight = 132;
+let familiarMaskPoints = [];
+let familiarMaskCanvas = null;
+const familiarMaskReady = new Promise(resolve => {
+  const image = new Image();
+  image.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = familiarMaskWidth;
+    canvas.height = familiarMaskHeight;
+    const maskContext = canvas.getContext('2d', { willReadFrequently: true });
+    maskContext.drawImage(image, 0, 0, familiarMaskWidth, familiarMaskHeight);
+    const imageData = maskContext.getImageData(0, 0, familiarMaskWidth, familiarMaskHeight);
+    for (let y = 0; y < familiarMaskHeight; y++) {
+      for (let x = 0; x < familiarMaskWidth; x++) {
+        const offset = (y * familiarMaskWidth + x) * 4;
+        const alpha = imageData.data[offset + 3];
+        imageData.data[offset] = 255;
+        imageData.data[offset + 1] = 255;
+        imageData.data[offset + 2] = 255;
+        if (alpha > 64) familiarMaskPoints.push({ x: (x + 0.5) / familiarMaskWidth - 0.5, y: (y + 0.5) / familiarMaskHeight - 0.5 });
+      }
+    }
+    maskContext.putImageData(imageData, 0, 0);
+    familiarMaskCanvas = canvas;
+    resolve();
+  };
+  image.onerror = () => resolve();
+  image.src = './uploads/familiar.png';
+});
 const projectilePositionCache = new Map();
 const activeVelocityMoves = [];
 
@@ -1024,12 +1061,26 @@ document.querySelector('.move-node-properties').addEventListener('input', event 
 let editingMoveId = null;
 let moveReturnFocus = addMoveButton;
 
+function getTimelineNodeClass(node) {
+  if (node.type === 'skip') return 'skip-timeline-node';
+  if (node.type === 'random-skip') return 'random-skip-timeline-node';
+  if (node.type === 'state') return 'state-timeline-node';
+  if (node.type === 'cancel') return 'cancel-timeline-node';
+  if (node.type === 'variable') return 'variable-timeline-node';
+  if (node.type === 'sound') return 'sound-timeline-node';
+  if (node.type === 'wait') return 'wait-timeline-node';
+  if (node.type === 'visual') return 'visual-timeline-node';
+  if (node.type === 'projectile') return 'projectile-timeline-node';
+  if (node.type === 'velocity') return 'velocity-timeline-node';
+  return 'hitbox-timeline-node';
+}
+
 function renderTimeline() {
   timelineList.replaceChildren();
   draftNodes.forEach(node => {
     const nodeButton = document.createElement('button');
     nodeButton.type = 'button';
-    const nodeClass = node.type === 'skip' || node.type === 'random-skip' ? (node.type === 'skip' ? 'skip-timeline-node' : 'random-skip-timeline-node') : node.type === 'state' ? 'state-timeline-node' : node.type === 'cancel' ? 'cancel-timeline-node' : node.type === 'variable' ? 'variable-timeline-node' : node.type === 'sound' ? 'sound-timeline-node' : node.type === 'wait' ? 'wait-timeline-node' : node.type === 'visual' ? 'visual-timeline-node' : node.type === 'projectile' ? 'projectile-timeline-node' : node.type === 'velocity' ? 'velocity-timeline-node' : 'hitbox-timeline-node';
+    const nodeClass = getTimelineNodeClass(node);
     nodeButton.className = `timeline-node ${nodeClass}`;
     nodeButton.dataset.nodeId = node.id;
     nodeButton.textContent = getTimelineNodeLabel(node);
@@ -1103,6 +1154,7 @@ function renderHitboxTargetPicker(container, node, property, multiple = true) {
   }
   for (const candidate of candidates) {
     const label = document.createElement('label');
+    label.className = getTimelineNodeClass(candidate);
     const input = document.createElement('input');
     input.type = multiple ? 'checkbox' : 'radio';
     input.name = 'node-target-' + node.id + '-' + property;
@@ -1195,7 +1247,7 @@ function getTimelineNodeLabel(node) {
   if (node.type === 'random-skip') return 'Random Skip';
   if (node.type === 'state') return `State [${node.stateType || 'IFrames'}]`;
   if (node.type === 'cancel') return 'Cancel';
-  if (node.type === 'variable') return 'Variable';
+  if (node.type === 'variable') return node.variable ? `Variable [${node.variable}]` : 'Variable';
   return `Wait [${node.time ?? 1}]`;
 }
 
@@ -1276,6 +1328,7 @@ function selectTimelineNode(nodeId) {
     randomSkipAfterHitInput.checked = Boolean(node.afterHitLanded);
     randomSkipAfterHitPicker.hidden = !node.afterHitLanded;
     if (node.afterHitLanded) renderHitboxTargetPicker(randomSkipAfterHitPicker, node, 'afterHitNodeIds');
+    randomSkipStackNodesInput.checked = Boolean(node.stackNodes);
     randomSkipVariableNameInput.value = node.ifVariableName ?? '';
     randomSkipVariableValueInput.value = node.ifVariableValue ?? '';
     randomSkipTargetOfHitboxInput.checked = Boolean(node.targetOfHitbox);
@@ -1286,6 +1339,7 @@ function selectTimelineNode(nodeId) {
       randomSkipAfterHitPicker.hidden = !node.afterHitLanded;
       if (node.afterHitLanded) renderHitboxTargetPicker(randomSkipAfterHitPicker, node, 'afterHitNodeIds');
     };
+    randomSkipStackNodesInput.onchange = () => { node.stackNodes = randomSkipStackNodesInput.checked; };
     randomSkipVariableNameInput.oninput = () => { node.ifVariableName = randomSkipVariableNameInput.value; };
     randomSkipVariableValueInput.oninput = () => { node.ifVariableValue = randomSkipVariableValueInput.value; };
     randomSkipTargetOfHitboxInput.onchange = () => {
@@ -1301,29 +1355,27 @@ function selectTimelineNode(nodeId) {
         row.className = 'random-skip-row';
         const pick = document.createElement('button');
         pick.type = 'button';
-        pick.className = 'node-target-button';
-        pick.textContent = 'Select node';
-        const selected = document.createElement('span');
-        selected.className = 'node-target-selected';
-        selected.textContent = destination.nodeId == null ? 'No node selected' : getTimelineNodeLabel(draftNodes.find(item => item.id === destination.nodeId) ?? {type:'wait'});
+        const selectedNode = draftNodes.find(item => item.id === destination.nodeId);
+        pick.className = selectedNode ? `node-target-button ${getTimelineNodeClass(selectedNode)}` : 'node-target-button';
+        pick.textContent = selectedNode ? getTimelineNodeLabel(selectedNode) : 'Select node';
         const chance = document.createElement('input');
         chance.type = 'number'; chance.min = '0'; chance.max = '100'; chance.step = '1'; chance.value = destination.chance ?? ''; chance.placeholder = 'Chance'; chance.setAttribute('aria-label', 'Chance percentage');
         chance.addEventListener('input', () => { destination.chance = Math.max(0, Math.min(100, Number(chance.value) || 0)); });
         const remove = document.createElement('button');
         remove.type = 'button'; remove.className = 'move-node-order remove-node random-skip-remove'; remove.textContent = '−'; remove.setAttribute('aria-label', 'Remove destination'); remove.title = 'Remove destination';
         remove.addEventListener('click', () => { node.destinations.splice(index, 1); renderDestinations(); });
-        pick.addEventListener('click', () => {
-          const picker = document.createElement('div'); picker.className = 'node-target-choices';
-          const currentIndex = draftNodes.findIndex(item => item.id === node.id);
-          const candidates = draftNodes.filter((item, itemIndex) => itemIndex > currentIndex);
-          candidates.forEach(candidate => {
-            const option = document.createElement('button'); option.type = 'button'; option.className = 'node-target-button'; option.textContent = getTimelineNodeLabel(candidate);
-            option.addEventListener('click', () => { destination.nodeId = candidate.id; renderDestinations(); }); picker.append(option);
-          });
-          if (!candidates.length) { const empty = document.createElement('span'); empty.textContent = 'Add a node below Random Skip first.'; picker.append(empty); }
-          row.replaceChild(picker, selected);
+        const picker = document.createElement('div');
+        picker.className = 'node-target-choices';
+        picker.hidden = true;
+        const currentIndex = draftNodes.findIndex(item => item.id === node.id);
+        const candidates = draftNodes.filter((item, itemIndex) => itemIndex > currentIndex);
+        candidates.forEach(candidate => {
+          const option = document.createElement('button'); option.type = 'button'; option.className = `node-target-button ${getTimelineNodeClass(candidate)}`; option.textContent = getTimelineNodeLabel(candidate);
+          option.addEventListener('click', () => { destination.nodeId = candidate.id; renderDestinations(); }); picker.append(option);
         });
-        row.append(pick, selected, chance, remove);
+        if (!candidates.length) { const empty = document.createElement('span'); empty.textContent = 'Add a node after Random Skip first.'; picker.append(empty); }
+        pick.addEventListener('click', () => { picker.hidden = !picker.hidden; });
+        row.append(pick, chance, remove, picker);
         randomSkipDestinations.append(row);
       });
     };
@@ -1340,7 +1392,7 @@ function selectTimelineNode(nodeId) {
     variableTargetOfHitboxInput.checked = Boolean(node.targetOfHitbox);
     variableTargetPicker.hidden = !node.targetOfHitbox;
     if (node.targetOfHitbox) renderHitboxTargetPicker(variableTargetPicker, node, 'targetNodeIds');
-    variableValueInput.oninput = () => { node.variable = variableValueInput.value; };
+    variableValueInput.oninput = () => { node.variable = variableValueInput.value; updateTimelineNodeLabel(node); };
     variableDataValueInput.oninput = () => { node.value = variableDataValueInput.value; };
     variableMathInput.onchange = () => { node.math = variableMathInput.checked; };
     variableGlobalInput.onchange = () => { node.global = variableGlobalInput.checked; };
@@ -1354,8 +1406,8 @@ function selectTimelineNode(nodeId) {
   }
   if (node.type === 'skip') {
     const selectedSkipNode = draftNodes.find(item => item.id === node.skipNodeId);
-    skipNodeSelected.hidden = !selectedSkipNode;
-    skipNodeSelected.textContent = selectedSkipNode ? getTimelineNodeLabel(selectedSkipNode) : '';
+    skipNodeTargetButton.className = selectedSkipNode ? `node-target-button ${getTimelineNodeClass(selectedSkipNode)}` : 'node-target-button';
+    skipNodeTargetButton.textContent = selectedSkipNode ? getTimelineNodeLabel(selectedSkipNode) : 'Select node';
     skipAfterHitLandedInput.checked = Boolean(node.afterHitLanded);
     skipTargetPicker.hidden = !node.afterHitLanded;
     if (node.afterHitLanded) renderHitboxTargetPicker(skipTargetPicker, node, 'afterHitNodeIds');
@@ -1379,12 +1431,12 @@ function selectTimelineNode(nodeId) {
       for (const candidate of candidates) {
         const option = document.createElement('button');
         option.type = 'button';
-        option.className = 'node-target-button';
+        option.className = `node-target-button ${getTimelineNodeClass(candidate)}`;
         option.textContent = getTimelineNodeLabel(candidate);
         option.addEventListener('click', () => {
           node.skipNodeId = candidate.id;
-          skipNodeSelected.textContent = getTimelineNodeLabel(candidate);
-          skipNodeSelected.hidden = false;
+          skipNodeTargetButton.className = `node-target-button ${getTimelineNodeClass(candidate)}`;
+          skipNodeTargetButton.textContent = getTimelineNodeLabel(candidate);
           skipNodeTargetPicker.hidden = true;
         });
         skipNodeTargetPicker.append(option);
@@ -1439,7 +1491,7 @@ function selectTimelineNode(nodeId) {
     node.rotation = node.rotation ?? (categorySelect.value === 'guy-one' ? 90 : 270);
     updateVelocityRotationDial(node.rotation);
     velocityRandomInput.checked = Boolean(node.random);
-    velocityRotationSetting.hidden = Boolean(node.random);
+    velocityRotationSetting.hidden = Boolean(node.random || node.trackEnemy || node.trackOpposite);
     velocityTrackEnemySetting.hidden = Boolean(node.random);
     velocityTrackOppositeSetting.hidden = Boolean(node.random);
     velocityTrackEnemyInput.checked = Boolean(node.trackEnemy);
@@ -1462,23 +1514,17 @@ function selectTimelineNode(nodeId) {
     };
     velocityRandomInput.onchange = () => {
       node.random = velocityRandomInput.checked;
-      velocityRotationSetting.hidden = node.random;
+      velocityRotationSetting.hidden = node.random || node.trackEnemy || node.trackOpposite;
       velocityTrackEnemySetting.hidden = node.random;
       velocityTrackOppositeSetting.hidden = node.random;
     };
     velocityTrackEnemyInput.onchange = () => {
       node.trackEnemy = velocityTrackEnemyInput.checked;
-      if (node.trackEnemy) {
-        node.trackOpposite = false;
-        velocityTrackOppositeInput.checked = false;
-      }
+      velocityRotationSetting.hidden = node.random || node.trackEnemy || node.trackOpposite;
     };
     velocityTrackOppositeInput.onchange = () => {
       node.trackOpposite = velocityTrackOppositeInput.checked;
-      if (node.trackOpposite) {
-        node.trackEnemy = false;
-        velocityTrackEnemyInput.checked = false;
-      }
+      velocityRotationSetting.hidden = node.random || node.trackEnemy || node.trackOpposite;
     };
     velocityChangesDirectionInput.onchange = () => { node.changesDirection = velocityChangesDirectionInput.checked; };
     velocityTargetOfHitboxInput.onchange = () => {
@@ -1770,7 +1816,9 @@ function selectTimelineNode(nodeId) {
   hitboxNodeDetails.hidden = false;
   hitboxDamageInput.value = node.damage;
   hitboxTimeInput.value = node.time ?? 0.05;
+  hitboxShapeInput.value = node.shape || 'Square';
   hitboxAnchoredInput.checked = Boolean(node.anchored);
+  hitboxHitSelfInput.checked = Boolean(node.hitSelf);
   hitboxSizeXValue.value = node.width;
   hitboxSizeYValue.value = node.height;
   hitboxSizeXInput.value = Math.max(Number(hitboxSizeXInput.min), Math.min(Number(hitboxSizeXInput.max), node.width));
@@ -1781,14 +1829,19 @@ function selectTimelineNode(nodeId) {
   hitboxSoundName.textContent = node.soundName || defaultHitboxSoundName;
   hitboxDamageInput.oninput = () => {
     const raw = hitboxDamageInput.value.trim();
-    node.damage = raw.startsWith('$') ? raw : Math.max(0, Math.min(9999, Number(raw) || 0));
+    node.damage = raw.startsWith('$') ? raw : (Number.isFinite(Number(raw)) ? Number(raw) : 0);
     updateTimelineNodeLabel(node);
   };
   hitboxTimeInput.oninput = () => {
     const time = hitboxTimeInput.valueAsNumber;
     if (Number.isFinite(time)) node.time = Math.max(0, time);
   };
+  hitboxShapeInput.onchange = () => {
+    node.shape = hitboxShapeInput.value;
+    updateHitboxPreview();
+  };
   hitboxAnchoredInput.onchange = () => { node.anchored = hitboxAnchoredInput.checked; };
+  hitboxHitSelfInput.onchange = () => { node.hitSelf = hitboxHitSelfInput.checked; };
   hitboxPositionXInput.oninput = () => {
     const raw = hitboxPositionXInput.value.trim();
     node.x = raw.startsWith('$') ? raw : Number(raw) || 0;
@@ -2034,7 +2087,7 @@ projectileRotationInput.addEventListener('input', () => {
 
 function addHitboxNode() {
   const size = getSelectedGuySquare().size;
-  draftNodes.push({ id: nextNodeId++, type: 'hitbox', damage: 10, time: 0.05, anchored: false, x: 0, y: 0, rotation: 0, width: size, height: size, soundURL: defaultHitboxSound, soundName: defaultHitboxSoundName });
+  draftNodes.push({ id: nextNodeId++, type: 'hitbox', damage: 10, time: 0.05, shape: 'Square', anchored: false, hitSelf: false, x: 0, y: 0, rotation: 0, width: size, height: size, soundURL: defaultHitboxSound, soundName: defaultHitboxSoundName });
   selectedNodeId = null;
   hitboxNodeDetails.hidden = true;
   projectileNodeDetails.hidden = true;
@@ -2144,7 +2197,7 @@ stateNodeButton.addEventListener('click', () => {
   renderTimeline();
 });
 randomSkipNodeButton.addEventListener('click', () => {
-  draftNodes.push({ id: nextNodeId++, type: 'random-skip', destinations: [] });
+  draftNodes.push({ id: nextNodeId++, type: 'random-skip', destinations: [], stackNodes: false });
   selectedNodeId = null;
   hitboxNodeDetails.hidden = true; projectileNodeDetails.hidden = true; soundNodeDetails.hidden = true; waitNodeDetails.hidden = true; visualNodeDetails.hidden = true; velocityNodeDetails.hidden = true; cancelNodeDetails.hidden = true; skipNodeDetails.hidden = true; variableNodeDetails.hidden = true; stateNodeDetails.hidden = true; randomSkipNodeDetails.hidden = true;
   renderTimeline();
@@ -2624,7 +2677,7 @@ function resolveVariableReferences(value, variables) {
 }
 
 function addDamagePopup(targetIndex, x, y, amount) {
-  if (!(amount > 0)) return;
+  if (!Number.isFinite(amount) || amount === 0) return;
   const existing = damagePopups.find(popup => popup.targetIndex === targetIndex && popup.age < popup.duration);
   if (existing) {
     existing.amount += amount;
@@ -2672,6 +2725,15 @@ function updateTimedCombatStates() {
         const current = Math.hypot(square.vx, square.vy);
         square.speed = square.defaultSpeed;
         if (current > 0) { square.vx = square.vx / current * square.speed; square.vy = square.vy / current * square.speed; }
+        for (const movement of activeVelocityMoves) {
+          if (movement.squareIndex !== squares.indexOf(square)) continue;
+          movement.previousSpeed = square.defaultSpeed;
+          const previousDirection = Math.hypot(movement.previousVx, movement.previousVy) > 0
+            ? Math.atan2(movement.previousVy, movement.previousVx)
+            : movement.previousDirection;
+          movement.previousVx = Math.cos(previousDirection) * square.defaultSpeed;
+          movement.previousVy = Math.sin(previousDirection) * square.defaultSpeed;
+        }
       } else if (type === 'Size') {
         square.size = square.defaultSize;
       } else if (type === 'MaxHealth') {
@@ -2707,33 +2769,58 @@ async function runMoveTimeline(attackerIndex, move, preview = false) {
   }
 }
 
-async function executeMoveTimeline(attackerIndex, move, preview = false, previewState = null) {
+async function executeMoveTimeline(attackerIndex, move, preview = false, previewState = null, startNodeIndex = 0, branchActorIndex = null, seededHitNodeIds = [], allowTargetBranches = true) {
   const generation = matchGeneration;
   const moveWasStopped = () => preview ? Boolean(previewState?.cancelled) : (matchEnded || generation !== matchGeneration);
   let targetIndex = attackerIndex === 0 ? 1 : 0;
   let attacker = squares[attackerIndex];
   let target = squares[targetIndex];
-  let lastHitResolution = Promise.resolve(null);
+  let lastHitResolution = branchActorIndex === null ? Promise.resolve(null) : Promise.resolve(branchActorIndex);
   if (!attacker || !target || attacker === target || (!preview && attacker.health <= 0)) return;
-  if (!preview && (move._neverRepeat || simulationTime < (move._cooldownUntil ?? 0))) return;
+  if (!preview && branchActorIndex === null && (move._neverRepeat || simulationTime < (move._cooldownUntil ?? 0))) return;
   const nodes = move.nodes ?? [];
   const pendingTimelineCompletions = [];
-  const pendingHitResolutions = [];
+  const pendingHitResolutions = branchActorIndex === null ? [] : [Promise.resolve(branchActorIndex)];
+  let stackedRandomSkipTargets = [];
+  let runJumpDestinationNext = false;
   const hitResolutionByNode = new Map();
+  const hitDirectionByNode = new Map();
+  let lastHitDirectionResolution = Promise.resolve(null);
   let variables = new Map(globalVariablesByGuy[getGuyId(attackerIndex)]);
-  const switchToHitTarget = hitIndex => {
-    if (!Number.isInteger(hitIndex) || combatStateActive(squares[hitIndex], 'Stun')) return false;
-    attackerIndex = hitIndex;
-    targetIndex = 1 - hitIndex;
-    attacker = squares[attackerIndex];
-    target = squares[targetIndex];
-    variables = new Map(globalVariablesByGuy[getGuyId(attackerIndex)]);
-    lastHitResolution = Promise.resolve(null);
-    return true;
-  };
   const waitForSelectedHits = async ids => {
     if (!ids?.length || ids.some(id => !hitResolutionByNode.has(Number(id)))) return null;
     const results = await Promise.all(ids.map(id => hitResolutionByNode.get(Number(id))));
+    return results.every(result => result !== null) ? results.at(-1) : null;
+  };
+  for (const id of seededHitNodeIds) hitResolutionByNode.set(Number(id), Promise.resolve(branchActorIndex));
+  const forkTargetTimelines = async (node, startIndexes) => {
+    if (!allowTargetBranches || branchActorIndex !== null || !startIndexes.length) return false;
+    const hitIndexes = node.targetNodeIds?.length
+      ? await Promise.all(node.targetNodeIds.map(id => hitResolutionByNode.get(Number(id)) ?? Promise.resolve(null)))
+      : [await lastHitResolution];
+    const hitActors = [...new Set(hitIndexes.filter(hitIndex => hitIndex === 0 || hitIndex === 1))];
+    if (!hitActors.length || moveWasStopped()) return false;
+    for (const hitIndex of hitActors) {
+      for (const startIndex of new Set(startIndexes)) {
+        const branch = executeMoveTimeline(
+          hitIndex, move, preview, previewState, startIndex, hitIndex, node.targetNodeIds ?? [], false,
+        );
+        if (preview) pendingTimelineCompletions.push(branch);
+      }
+    }
+    return true;
+  };
+  const forkTargetTimeline = (node, startIndex) => forkTargetTimelines(node, [startIndex]);
+  const transferTargetTimelines = async (node, startIndexes) => {
+    const transferred = await forkTargetTimelines(node, startIndexes);
+    if (!transferred) return false;
+    if (preview) await Promise.all(pendingTimelineCompletions);
+    return true;
+  };
+  const transferTargetTimeline = (node, startIndex) => transferTargetTimelines(node, [startIndex]);
+  const waitForSelectedHitDirection = async ids => {
+    if (!ids?.length || ids.some(id => !hitDirectionByNode.has(Number(id)))) return null;
+    const results = await Promise.all(ids.map(id => hitDirectionByNode.get(Number(id))));
     return results.every(result => result !== null) ? results.at(-1) : null;
   };
   const waitForAnyPendingHit = async () => {
@@ -2743,19 +2830,24 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       let unresolved = hits.length;
       let landed = false;
       for (const hit of hits) hit.then(result => {
-        if (result) { landed = true; resolve(true); }
+        if (result !== null && result !== false) { landed = true; resolve(true); }
         else if (--unresolved === 0 && !landed) resolve(false);
       });
     });
   };
-  for (let nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
+  for (let nodeIndex = startNodeIndex; nodeIndex < nodes.length; nodeIndex++) {
+    if (runJumpDestinationNext) {
+      runJumpDestinationNext = false;
+    } else if (stackedRandomSkipTargets.length && nodeIndex < stackedRandomSkipTargets[0]) {
+      nodeIndex = stackedRandomSkipTargets.shift() - 1;
+      continue;
+    }
+    if (stackedRandomSkipTargets[0] === nodeIndex) stackedRandomSkipTargets.shift();
     const sourceNode = nodes[nodeIndex];
     if (sourceNode.type === 'variable') {
-      if (sourceNode.targetOfHitbox) {
-        const hitIndex = sourceNode.targetNodeIds?.length
-          ? await waitForSelectedHits(sourceNode.targetNodeIds)
-          : await lastHitResolution;
-        if (hitIndex === null || moveWasStopped()) continue;
+      if (sourceNode.targetOfHitbox && allowTargetBranches) {
+        await transferTargetTimeline(sourceNode, nodeIndex);
+        return;
       }
       if (moveWasStopped()) return;
       const name = String(sourceNode.variable ?? '').trim();
@@ -2812,15 +2904,11 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       continue;
     }
     if (node.type === 'state') {
-      let stateTargetIndex = attackerIndex;
-      if (node.targetOfHitbox) {
-        const hitIndex = node.targetNodeIds?.length
-          ? await waitForSelectedHits(node.targetNodeIds)
-          : await lastHitResolution;
-        if (hitIndex === null || moveWasStopped()) continue;
-        stateTargetIndex = hitIndex;
+      if (node.targetOfHitbox && allowTargetBranches) {
+        await transferTargetTimeline(node, nodeIndex);
+        return;
       }
-      if (!preview) applyCombatState(squares[stateTargetIndex], node);
+      if (!preview) applyCombatState(squares[attackerIndex], node);
       continue;
     }
     if (node.type === 'random-skip' || node.type === 'skip') {
@@ -2836,38 +2924,52 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
         if (String(value ?? '') !== String(node.ifVariableValue ?? '')) continue;
       }
       let destinationIndex = -1;
+      let targetBranchStartIndexes = [];
       if (node.type === 'skip') {
         destinationIndex = nodes.findIndex(item => item.id === node.skipNodeId);
+        if (destinationIndex > nodeIndex) targetBranchStartIndexes = [destinationIndex];
       } else {
+        const passedTargets = [];
         for (const destination of node.destinations ?? []) {
           if (destination.nodeId == null) continue;
           const chance = Math.max(0, Math.min(100, Number(destination.chance) || 0));
-          if (Math.random() * 100 < chance) {
-            destinationIndex = nodes.findIndex(item => item.id === destination.nodeId);
-            if (destinationIndex > nodeIndex) break;
-            destinationIndex = -1;
-          }
+          if (Math.random() * 100 >= chance) continue;
+          const targetIndex = nodes.findIndex(item => item.id === destination.nodeId);
+          if (targetIndex <= nodeIndex) continue;
+          if (node.stackNodes) passedTargets.push(targetIndex);
+          else { destinationIndex = targetIndex; break; }
+        }
+        if (node.stackNodes && passedTargets.length) {
+          targetBranchStartIndexes = [...new Set(passedTargets)].sort((a, b) => a - b);
+          stackedRandomSkipTargets = [...targetBranchStartIndexes];
+          destinationIndex = stackedRandomSkipTargets.shift();
+        } else if (destinationIndex > nodeIndex) {
+          targetBranchStartIndexes = [destinationIndex];
         }
       }
       if (destinationIndex <= nodeIndex) continue;
-      if (node.targetOfHitbox) {
-        const hitIndex = node.targetNodeIds?.length
-          ? await waitForSelectedHits(node.targetNodeIds)
-          : await lastHitResolution;
-        if (hitIndex === null || moveWasStopped() || !switchToHitTarget(hitIndex)) continue;
+      if (node.targetOfHitbox && allowTargetBranches) {
+        await transferTargetTimelines(node, targetBranchStartIndexes);
+        nodeIndex = Math.max(destinationIndex, ...targetBranchStartIndexes);
+        stackedRandomSkipTargets = [];
+        runJumpDestinationNext = false;
+      } else {
+        nodeIndex = destinationIndex - 1;
+        runJumpDestinationNext = true;
       }
-      nodeIndex = destinationIndex - 1;
       continue;
     }
     if (node.type === 'cancel') {
       if (!preview) {
-        if (node.neverRepeat) move._neverRepeat = true;
-        move._cooldownUntil = simulationTime + Math.max(0, Number(node.moveCooldown) || 0);
+        if (allowTargetBranches) {
+          if (node.neverRepeat) move._neverRepeat = true;
+          move._cooldownUntil = simulationTime + Math.max(0, Number(node.moveCooldown) || 0);
+        }
       }
       return;
     }
     if (node.type === 'velocity') {
-      const startVelocityMovement = moverIndex => {
+      const startVelocityMovement = (moverIndex, previousDirectionOverride = null) => {
         const mover = squares[moverIndex];
         const opponent = squares[moverIndex === 0 ? 1 : 0];
         const speed = Math.max(1, Math.min(3000, Number(node.speed) || 300));
@@ -2883,13 +2985,18 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
           mover.speed = activeMove.previousSpeed;
           activeMove.complete?.(false);
         }
+        const previousDirection = Number.isFinite(previousDirectionOverride)
+          ? previousDirectionOverride
+          : Math.atan2(mover.vy, mover.vx);
         const direction = node.random
           ? Math.random() * Math.PI * 2
-          : node.trackEnemy
-            ? Math.atan2(opponent.y - mover.y, opponent.x - mover.x)
-            : node.trackOpposite
-              ? Math.atan2(mover.vy, mover.vx) + Math.PI
-              : (Number(node.rotation ?? 90) - 90) * Math.PI / 180;
+          : node.trackEnemy && node.trackOpposite
+            ? Math.atan2(mover.y - opponent.y, mover.x - opponent.x)
+            : node.trackEnemy
+              ? Math.atan2(opponent.y - mover.y, opponent.x - mover.x)
+              : node.trackOpposite
+                ? previousDirection + Math.PI
+                : (Number(node.rotation ?? 90) - 90) * Math.PI / 180;
         const movement = {
           squareIndex: moverIndex,
           direction,
@@ -2900,9 +3007,10 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
           lastY: mover.y,
           previousVx: mover.vx,
           previousVy: mover.vy,
+          previousDirection,
           previousSpeed: mover.speed,
           preview,
-          changesDirection: Boolean(node.changesDirection || node.trackOpposite),
+          changesDirection: Boolean(node.changesDirection),
           complete: null,
         };
         mover.vx = Math.cos(direction) * speed;
@@ -2914,18 +3022,12 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
         activeVelocityMoves.push(movement);
         return movementResolution;
       };
-      if (node.targetOfHitbox) {
-        const hitIndex = node.targetNodeIds?.length
-          ? await waitForSelectedHits(node.targetNodeIds)
-          : await lastHitResolution;
-        if (hitIndex !== null && !moveWasStopped()) {
-          const movement = startVelocityMovement(hitIndex);
-          if (preview) pendingTimelineCompletions.push(movement);
-        }
-      } else {
-        const movement = startVelocityMovement(attackerIndex);
-        if (preview) pendingTimelineCompletions.push(movement);
+      if (node.targetOfHitbox && allowTargetBranches) {
+        await transferTargetTimeline(node, nodeIndex);
+        return;
       }
+      const movement = startVelocityMovement(attackerIndex);
+      if (preview) pendingTimelineCompletions.push(movement);
       continue;
     }
     if (node.type === 'visual') {
@@ -2936,7 +3038,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
         if (spawnAtProjectileKey && !projectilePosition) return;
         if (visualType === 'Sprite Replace') {
           if (!node.image) return;
-          const sprite = squares[attackerIndex];
+          const sprite = squares[anchorIndex];
           sprite.spriteReplace = {
             image: node.image,
             imageBounds: node.imageBounds || (node.image.complete && node.image.naturalWidth ? getImageAlphaBounds(node.image) : null),
@@ -2994,14 +3096,11 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
           if (preview) previewMoveEndTime = Math.max(previewMoveEndTime, startedAt + fadeIn + duration + fadeOut);
         }
       };
-      if (visualType !== 'Overlay' && node.targetOfHitbox) {
-        const hitIndex = node.targetNodeIds?.length
-          ? await waitForSelectedHits(node.targetNodeIds)
-          : await lastHitResolution;
-        if (hitIndex !== null && !moveWasStopped()) launchVisual(hitIndex);
-      } else {
-        launchVisual(attackerIndex);
+      if (visualType !== 'Overlay' && node.targetOfHitbox && allowTargetBranches) {
+        await transferTargetTimeline(node, nodeIndex);
+        return;
       }
+      launchVisual(attackerIndex);
       continue;
     }
     if (node.type === 'projectile') {
@@ -3046,6 +3145,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       }
       const projectile = {
         projectileId,
+        targetDirection: null,
         idKey: projectileIdKey,
         attackerIndex,
         targetIndex,
@@ -3085,51 +3185,77 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       activeProjectiles.push(projectile);
       pendingHitResolutions.push(projectileResolution);
       hitResolutionByNode.set(sourceNode.id, projectileResolution.then(hit => hit ? resolvedTargetIndex : null));
+      hitDirectionByNode.set(sourceNode.id, projectileResolution.then(hit => hit ? projectile.targetDirection : null));
       lastHitResolution = projectileResolution.then(hit => hit ? resolvedTargetIndex : null);
+      lastHitDirectionResolution = projectileResolution.then(hit => hit ? projectile.targetDirection : null);
       if (preview) pendingTimelineCompletions.push(projectileResolution);
       continue;
     }
-    if (node.type !== 'hitbox' || (!preview && target.health <= 0)) continue;
-    const damage = Math.max(0, Number(node.damage) || 0);
+    if (node.type !== 'hitbox') continue;
+    if (node.shape === 'Familiar') await familiarMaskReady;
+    const hitboxOwnerIndex = attackerIndex;
+    const hitboxVictimIndex = targetIndex;
+    const hitboxOwner = squares[hitboxOwnerIndex];
+    const hitboxVictim = squares[hitboxVictimIndex];
+    if (!preview && hitboxVictim.health <= 0) continue;
+    const damage = Number.isFinite(Number(node.damage)) ? Number(node.damage) : 0;
     const duration = Math.max(0, Number.isFinite(Number(node.time)) ? Number(node.time) : 0.05);
     const rotation = Number(node.rotation) || 0;
     const positionX = Number(node.x) || 0;
     const positionY = Number(node.y) || 0;
     const anchored = Boolean(node.anchored);
-    const cos = Math.cos(attacker.rotation);
-    const sin = Math.sin(attacker.rotation);
+    const cos = Math.cos(hitboxOwner.rotation);
+    const sin = Math.sin(hitboxOwner.rotation);
     let resolveHitbox;
-    const resolvedTargetIndex = targetIndex;
+    let remainingHitboxTargets = node.hitSelf ? 2 : 1;
     const hitboxResolution = new Promise(resolve => { resolveHitbox = resolve; });
+    const hitboxTargets = node.hitSelf ? [hitboxVictimIndex, hitboxOwnerIndex] : [hitboxVictimIndex];
     const activeHitbox = {
-      attackerIndex,
-      targetIndex,
+      nodeId: sourceNode.id,
+      targetDirection: null,
+      attackerIndex: hitboxOwnerIndex,
       damage,
       width: Math.max(0, Number(node.width) || 0),
       height: Math.max(0, Number(node.height) || 0),
+      shape: node.shape || 'Square',
       rotation,
       anchored,
       positionX,
       positionY,
-      x: attacker.x + (anchored ? positionX * cos - positionY * sin : positionX),
-      y: attacker.y + (anchored ? positionX * sin + positionY * cos : positionY),
-      worldRotation: rotation + (anchored ? attacker.rotation : 0),
+      x: hitboxOwner.x + (anchored ? positionX * cos - positionY * sin : positionX),
+      y: hitboxOwner.y + (anchored ? positionX * sin + positionY * cos : positionY),
+      worldRotation: rotation + (anchored ? hitboxOwner.rotation : 0),
       soundURL: node.soundURL,
       startedAt: simulationTime,
       duration,
       hit: false,
       preview,
       cancelled: false,
-      complete: resolveHitbox,
     };
-    activeHitboxes.push(activeHitbox);
+    for (const hitTargetIndex of hitboxTargets) {
+      if (!preview && squares[hitTargetIndex].health <= 0) {
+        remainingHitboxTargets--;
+        continue;
+      }
+      activeHitboxes.push({
+        ...activeHitbox,
+        targetIndex: hitTargetIndex,
+        complete: didHit => {
+          if (didHit === hitTargetIndex) resolveHitbox(hitTargetIndex);
+          else if (--remainingHitboxTargets === 0) resolveHitbox(null);
+        },
+      });
+    }
+    if (remainingHitboxTargets === 0) resolveHitbox(null);
     pendingHitResolutions.push(hitboxResolution);
-    hitResolutionByNode.set(sourceNode.id, hitboxResolution.then(hit => hit ? resolvedTargetIndex : null));
+    hitResolutionByNode.set(sourceNode.id, hitboxResolution.then(hitIndex => hitIndex ?? null));
+    hitDirectionByNode.set(sourceNode.id, hitboxResolution.then(hitIndex => hitIndex === null ? null : activeHitboxes.find(hitbox => hitbox.nodeId === sourceNode.id && hitbox.targetIndex === hitIndex)?.targetDirection ?? null));
     if (preview) {
       pendingTimelineCompletions.push(hitboxResolution);
       previewMoveEndTime = Math.max(previewMoveEndTime, simulationTime + duration);
     }
-    lastHitResolution = hitboxResolution.then(hit => hit ? resolvedTargetIndex : null);
+    lastHitResolution = hitboxResolution.then(hitIndex => hitIndex ?? null);
+    lastHitDirectionResolution = hitboxResolution.then(hitIndex => hitIndex === null ? null : activeHitboxes.find(hitbox => hitbox.nodeId === sourceNode.id && hitbox.targetIndex === hitIndex)?.targetDirection ?? null);
   }
   if (preview) await Promise.all(pendingTimelineCompletions);
 }
@@ -3532,6 +3658,7 @@ function resize() {
   canvas.width = Math.round(width * dpr);
   canvas.height = Math.round(height * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  updateHitboxPreview();
   if (width > 0 && height > 0 && (!positioned || (!isRunning && (needsStartMotion || isArenaResizeMode)))) {
     positionSquaresAtStart();
     positioned = true;
@@ -3634,6 +3761,92 @@ function getHitbox(square, opponent) {
   };
 }
 
+function transformHitboxPoint(x, y, centerX, centerY, cos, sin) {
+  return { x: centerX + x * cos - y * sin, y: centerY + x * sin + y * cos };
+}
+
+function hitboxPolygonsOverlap(first, second) {
+  for (const polygon of [first, second]) {
+    for (let index = 0; index < polygon.length; index++) {
+      const start = polygon[index];
+      const end = polygon[(index + 1) % polygon.length];
+      const axisX = -(end.y - start.y);
+      const axisY = end.x - start.x;
+      const firstProjection = first.map(point => point.x * axisX + point.y * axisY);
+      const secondProjection = second.map(point => point.x * axisX + point.y * axisY);
+      if (Math.max(...firstProjection) < Math.min(...secondProjection) || Math.max(...secondProjection) < Math.min(...firstProjection)) return false;
+    }
+  }
+  return true;
+}
+
+function getFamiliarShapeSize(width, height) {
+  const ratio = familiarMaskWidth / familiarMaskHeight;
+  return width / height > ratio
+    ? { width: height * ratio, height }
+    : { width, height: width / ratio };
+}
+
+function hitboxShapeOverlapsTarget(shape, centerX, centerY, rotation, width, height, left, top, targetWidth, targetHeight) {
+  if (shape === 'Square') return true;
+  if (shape === 'Circle') {
+    const radius = Math.min(width, height) / 2;
+    const closestX = Math.max(left, Math.min(centerX, left + targetWidth));
+    const closestY = Math.max(top, Math.min(centerY, top + targetHeight));
+    return (centerX - closestX) ** 2 + (centerY - closestY) ** 2 <= radius ** 2;
+  }
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  const target = [
+    { x: left, y: top },
+    { x: left + targetWidth, y: top },
+    { x: left + targetWidth, y: top + targetHeight },
+    { x: left, y: top + targetHeight },
+  ];
+  if (shape === 'Triangle') {
+    const triangle = [
+      transformHitboxPoint(0, -height / 2, centerX, centerY, cos, sin),
+      transformHitboxPoint(width / 2, height / 2, centerX, centerY, cos, sin),
+      transformHitboxPoint(-width / 2, height / 2, centerX, centerY, cos, sin),
+    ];
+    return hitboxPolygonsOverlap(triangle, target);
+  }
+  if (shape === 'Familiar' && familiarMaskPoints.length) {
+    const size = getFamiliarShapeSize(width, height);
+    const cellWidth = size.width / familiarMaskWidth;
+    const cellHeight = size.height / familiarMaskHeight;
+    const extentX = (Math.abs(cos) * cellWidth + Math.abs(sin) * cellHeight) / 2;
+    const extentY = (Math.abs(sin) * cellWidth + Math.abs(cos) * cellHeight) / 2;
+    for (const point of familiarMaskPoints) {
+      const world = transformHitboxPoint(point.x * size.width, point.y * size.height, centerX, centerY, cos, sin);
+      if (world.x + extentX >= left && world.x - extentX <= left + targetWidth &&
+          world.y + extentY >= top && world.y - extentY <= top + targetHeight) return true;
+    }
+  }
+  return shape === 'Familiar' && !familiarMaskPoints.length;
+}
+
+function drawHitboxShape(context, shape, width, height) {
+  if (shape === 'Familiar' && familiarMaskCanvas) {
+    const size = getFamiliarShapeSize(width, height);
+    context.drawImage(familiarMaskCanvas, -size.width / 2, -size.height / 2, size.width, size.height);
+    return;
+  }
+  context.beginPath();
+  if (shape === 'Circle') {
+    context.arc(0, 0, Math.min(width, height) / 2, 0, Math.PI * 2);
+  } else if (shape === 'Triangle') {
+    context.moveTo(0, -height / 2);
+    context.lineTo(width / 2, height / 2);
+    context.lineTo(-width / 2, height / 2);
+    context.closePath();
+  } else {
+    context.rect(-width / 2, -height / 2, width, height);
+  }
+  context.fill();
+  context.stroke();
+}
+
 function updateActiveHitboxes() {
   for (let index = activeHitboxes.length - 1; index >= 0; index--) {
     if (matchEnded) break;
@@ -3670,15 +3883,25 @@ function updateActiveHitboxes() {
     const targetTop = target.y + targetBounds.top;
     if (centerX + extentX < targetLeft || centerX - extentX > targetLeft + targetBounds.width ||
         centerY + extentY < targetTop || centerY - extentY > targetTop + targetBounds.height) continue;
+    if (!hitboxShapeOverlapsTarget(hitbox.shape || 'Square', centerX, centerY, rotation, hitbox.width, hitbox.height, targetLeft, targetTop, targetBounds.width, targetBounds.height)) continue;
 
     hitbox.hit = true;
+    hitbox.targetDirection = Math.atan2(target.vy, target.vx);
     const complete = hitbox.complete;
     hitbox.complete = null;
-    complete?.(true);
+    complete?.(hitbox.targetIndex);
     if (hitbox.soundURL) playTransientSound(hitbox.soundURL);
     if (hitbox.preview) {
-      if (hitbox.damage > 0) {
+      if (hitbox.damage !== 0) {
         addDamagePopup(hitbox.targetIndex, target.x + (Math.random() * 24 - 12), target.y - target.size / 2 - 18, hitbox.damage);
+      }
+      continue;
+    }
+    if (hitbox.damage < 0) {
+      const amountHealed = Math.min(target.maxHealth - target.health, Math.abs(hitbox.damage));
+      if (amountHealed > 0) {
+        target.health += amountHealed;
+        addDamagePopup(hitbox.targetIndex, target.x + (Math.random() * 24 - 12), target.y - target.size / 2 - 18, -amountHealed);
       }
       continue;
     }
@@ -3815,6 +4038,7 @@ function updateActiveProjectiles(dt) {
           continue;
         }
         if (!projectile.piercing) removeProjectileFromPlay(projectile);
+        projectile.targetDirection = Math.atan2(target.vy, target.vx);
         projectile.lastHitAt = simulationTime;
         if (projectile.soundURL) playTransientSound(projectile.soundURL);
         if (projectile.damage > 0) {
@@ -3910,6 +4134,7 @@ function drawDebugHitboxes() {
       hitbox.attackerIndex === attackerIndex &&
       hitbox.width === selectedNode.width &&
       hitbox.height === selectedNode.height &&
+      hitbox.shape === (selectedNode.shape || 'Square') &&
       hitbox.anchored === anchored &&
       hitbox.positionX === selectedNode.x &&
       hitbox.positionY === selectedNode.y &&
@@ -3920,8 +4145,7 @@ function drawDebugHitboxes() {
       ctx.rotate(worldRotation);
       ctx.strokeStyle = '#51f2d0';
       ctx.fillStyle = 'rgb(81 242 208 / 12%)';
-      ctx.fillRect(-selectedNode.width / 2, -selectedNode.height / 2, selectedNode.width, selectedNode.height);
-      ctx.strokeRect(-selectedNode.width / 2, -selectedNode.height / 2, selectedNode.width, selectedNode.height);
+      drawHitboxShape(ctx, selectedNode.shape || 'Square', selectedNode.width, selectedNode.height);
       ctx.restore();
     }
   }
@@ -3943,8 +4167,7 @@ function drawDebugHitboxes() {
     ctx.rotate(rotation);
     ctx.strokeStyle = hitbox.hit ? '#f4db36' : '#f044d2';
     ctx.fillStyle = hitbox.hit ? 'rgb(244 219 54 / 14%)' : 'rgb(240 68 210 / 12%)';
-    ctx.fillRect(-hitbox.width / 2, -hitbox.height / 2, hitbox.width, hitbox.height);
-    ctx.strokeRect(-hitbox.width / 2, -hitbox.height / 2, hitbox.width, hitbox.height);
+    drawHitboxShape(ctx, hitbox.shape || 'Square', hitbox.width, hitbox.height);
     ctx.restore();
   }
 
@@ -4384,6 +4607,9 @@ function updateActiveVelocityMoves(dt) {
       if (movement.changesDirection && !movement.preview) {
         square.vx = Math.cos(movement.direction) * movement.previousSpeed;
         square.vy = Math.sin(movement.direction) * movement.previousSpeed;
+      } else if (movement.previousSpeed > 0) {
+        square.vx = Math.cos(movement.previousDirection) * movement.previousSpeed;
+        square.vy = Math.sin(movement.previousDirection) * movement.previousSpeed;
       } else {
         square.vx = movement.previousVx;
         square.vy = movement.previousVy;
@@ -4516,8 +4742,8 @@ function draw(time) {
     ctx.font = '700 24px "DM Sans", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffd52a';
-    const label = `-${popup.amount}`;
+    ctx.fillStyle = popup.amount < 0 ? '#69e66d' : '#ffd52a';
+    const label = popup.amount < 0 ? `+${Math.abs(popup.amount)}` : `-${popup.amount}`;
     const popupY = popup.y - progress * 44;
     ctx.fillText(label, popup.x, popupY);
     ctx.restore();

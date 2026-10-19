@@ -253,12 +253,31 @@
               <h3>Node Properties</h3>
               <div class="hitbox-properties" hidden>
                 <label class="hitbox-damage-setting">Damage to target
-                  <input id="hitbox-damage" type="number" min="0" max="9999" step="1" value="10" />
+                  <input id="hitbox-damage" type="number" step="1" value="10" />
                 </label>
                 <div class="hitbox-size-editor">
                   <div id="hitbox-preview" class="hitbox-preview" aria-label="Hitbox dimensions compared with the selected guy">
+                    <span class="hitbox-preview-arena" aria-hidden="true"></span>
                     <span class="hitbox-preview-square"><img id="hitbox-preview-guy-image" alt="" hidden /></span>
                     <span class="hitbox-preview-outline"></span>
+                    <svg class="hitbox-preview-special-shape" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                      <defs>
+                        <mask id="familiar-hitbox-mask" mask-type="alpha">
+                          <image href="./uploads/familiar.png" width="100" height="100" preserveAspectRatio="none" />
+                        </mask>
+                        <filter id="familiar-hitbox-outline" filterUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120">
+                          <feMorphology in="SourceAlpha" operator="dilate" radius="2" result="expanded" />
+                          <feComposite in="expanded" in2="SourceAlpha" operator="out" result="edge" />
+                          <feFlood flood-color="#e34b55" result="red" />
+                          <feComposite in="red" in2="edge" operator="in" />
+                        </filter>
+                      </defs>
+                      <polygon class="triangle-hitbox-shape" points="50,2 98,98 2,98" fill="#e34b55" fill-opacity=".15" stroke="#e34b55" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
+                      <g class="familiar-hitbox-shape">
+                        <rect width="100" height="100" fill="#e34b55" fill-opacity=".15" mask="url(#familiar-hitbox-mask)" />
+                        <image href="./uploads/familiar.png" width="100" height="100" preserveAspectRatio="none" filter="url(#familiar-hitbox-outline)" />
+                      </g>
+                    </svg>
                   </div>
                   <div class="hitbox-size-controls">
                     <label class="axis-size-setting"><span>X size</span><input id="hitbox-size-x" type="range" min="16" max="400" step="1" value="100" aria-label="Hitbox X size slider" /><input id="hitbox-size-x-value" type="number" min="1" step="1" value="100" aria-label="Hitbox X size" /></label>
@@ -284,7 +303,16 @@
                   <input id="hitbox-time" type="number" min="0" step="0.01" value="0.05" />
                   <span>seconds</span>
                 </label>
+                <label class="hitbox-shape-setting">Shape
+                  <select id="hitbox-shape">
+                    <option value="Square">Square</option>
+                    <option value="Circle">Circle</option>
+                    <option value="Triangle">Triangle</option>
+                    <option value="Familiar">Familiar</option>
+                  </select>
+                </label>
                 <label class="hitbox-anchored-setting"><input id="hitbox-anchored" type="checkbox" /> Anchored</label>
+                <label class="hitbox-anchored-setting"><input id="hitbox-hit-self" type="checkbox" /> Hit Self</label>
                 <div class="hitbox-sound-setting">
                   <span class="hitbox-sound-label">Sound</span>
                   <span id="hitbox-sound-name">Default</span>
@@ -400,7 +428,9 @@
                 <div id="state-hitbox-target-picker" class="node-target-picker" hidden></div>
               </div>
               <div id="random-skip-properties" class="wait-properties random-skip-properties" hidden>
-                <button id="random-skip-add" class="node-target-button" type="button">Select node</button>
+                <button id="random-skip-add" class="node-target-button" type="button">Add node</button>
+                <div id="random-skip-destinations" class="random-skip-destinations"></div>
+                <label class="sound-cancel-setting"><input id="random-skip-stack-nodes" type="checkbox" />Stack Nodes</label>
                 <label class="sound-cancel-setting"><input id="random-skip-after-hit-landed" type="checkbox" />After Hit Landed</label>
                 <div id="random-skip-hitbox-target-picker" class="node-target-picker" hidden></div>
                 <label class="hitbox-damage-setting">If variable
@@ -408,13 +438,11 @@
                 </label>
                 <label class="hitbox-anchored-setting"><input id="random-skip-target-of-hitbox" type="checkbox" />Target of hitbox</label>
                 <div id="random-skip-target-picker" class="node-target-picker" hidden></div>
-                <div id="random-skip-destinations" class="random-skip-destinations"></div>
               </div>
               <div id="skip-properties" class="wait-properties" hidden>
                 <span class="skip-property-label">Node</span>
                 <button id="skip-node-target" class="node-target-button" type="button">Select node</button>
                 <div id="skip-node-target-picker" class="node-target-picker" hidden></div>
-                <div id="skip-node-selected" class="node-target-selected" hidden></div>
                 <label class="sound-cancel-setting"><input id="skip-after-hit-landed" type="checkbox" />After Hit Landed</label>
                 <div id="skip-hitbox-target-picker" class="node-target-picker" hidden></div>
                 <label class="hitbox-damage-setting">If variable
