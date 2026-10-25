@@ -6,7 +6,6 @@
     <meta name="theme-color" content="#f4f4f1" />
     <link rel="icon" href="data:," />
     <title>Guy Maker</title>
-    <link rel="icon" type="image/png" href="./gravityguy.png">
     <link rel="stylesheet" href="./style.css" />
     <script type="module" src="./app.js"></script>
   </head>
@@ -148,8 +147,18 @@
       <section class="move-editor" role="dialog" aria-modal="true" aria-labelledby="move-editor-title">
         <header class="move-editor-header">
           <h2 id="move-editor-title">New Move</h2>
-          <button id="close-move-modal" class="close-move-modal" type="button" aria-label="Close">×</button>
+          <div class="move-header-actions">
+            <button id="move-settings-button" class="move-settings-button" type="button" aria-label="Move settings" aria-expanded="false"><img src="./uploads/image-4.png" alt="" /></button>
+            <button id="close-move-modal" class="close-move-modal" type="button" aria-label="Close">×</button>
+          </div>
         </header>
+        <div id="move-settings-panel" class="move-settings-panel" hidden>
+          <h3>Settings</h3>
+          <label><input id="setting-categorized-nodes" type="checkbox" checked />Categorized Nodes</label>
+          <label><input id="setting-empty-sounds" type="checkbox" />Empty Sounds by Default</label>
+          <label><input id="setting-always-save-moves" type="checkbox" />Always save moves</label>
+          <label><input id="setting-compact-mode" type="checkbox" />Compact mode</label>
+        </div>
         <div class="move-condition-row">
           <label class="move-condition">Condition:
             <select id="move-condition-select" aria-label="Condition">
@@ -238,17 +247,40 @@
           <div class="nodes-column">
             <section class="move-nodes" aria-label="Nodes">
               <h3>Nodes</h3>
-              <button id="wait-node" class="hitbox-node" type="button">Wait</button>
-              <button id="visual-node" class="hitbox-node" type="button">Visual</button>
-              <button id="hitbox-node" class="hitbox-node" type="button">Hitbox</button>
-              <button id="projectile-node" class="hitbox-node" type="button">Projectile</button>
-              <button id="velocity-node" class="hitbox-node" type="button">Velocity</button>
-              <button id="sound-node" class="hitbox-node" type="button">Sound</button>
-              <button id="state-node" class="hitbox-node" type="button">State</button>
-              <button id="variable-node" class="hitbox-node" type="button">Variable</button>
-              <button id="skip-node" class="hitbox-node" type="button">Skip</button>
-              <button id="random-skip-node" class="hitbox-node" type="button">Random Skip</button>
-              <button id="cancel-node" class="hitbox-node" type="button">Cancel</button>
+              <details class="node-category">
+                <summary>Basic</summary>
+                <div class="node-category-items">
+                  <button id="wait-node" class="hitbox-node" type="button">Wait</button>
+                  <button id="loop-node" class="hitbox-node" type="button">Loop</button>
+                  <button id="cancel-node" class="hitbox-node" type="button">Cancel</button>
+                  <button id="comment-node" class="hitbox-node" type="button">Comment</button>
+                </div>
+              </details>
+              <details class="node-category">
+                <summary>Effects</summary>
+                <div class="node-category-items">
+                  <button id="sound-node" class="hitbox-node" type="button">Sound</button>
+                  <button id="velocity-node" class="hitbox-node" type="button">Velocity</button>
+                  <button id="visual-node" class="hitbox-node" type="button">Visual</button>
+                </div>
+              </details>
+              <details class="node-category">
+                <summary>Damage</summary>
+                <div class="node-category-items">
+                  <button id="hitbox-node" class="hitbox-node" type="button">Hitbox</button>
+                  <button id="projectile-node" class="hitbox-node" type="button">Projectile</button>
+                  <button id="state-node" class="hitbox-node" type="button">State</button>
+                </div>
+              </details>
+              <details class="node-category">
+                <summary>Advanced</summary>
+                <div class="node-category-items">
+                  <button id="variable-node" class="hitbox-node" type="button">Variable</button>
+                  <button id="skip-node" class="hitbox-node" type="button">Skip</button>
+                  <button id="random-skip-node" class="hitbox-node" type="button">Random Skip</button>
+                  <button id="advanced-projectile-node" class="hitbox-node" type="button">Advanced Projectile</button>
+                </div>
+              </details>
             </section>
             <section class="move-node-properties" aria-label="Node Properties">
               <h3>Node Properties</h3>
@@ -332,6 +364,7 @@
                 <label class="hitbox-damage-setting">Spawn at projectile
                   <input id="projectile-spawn-at-id" type="text" />
                 </label>
+                <label class="hitbox-anchored-setting"><input id="projectile-stacks" type="checkbox" />Stacks</label>
                 <div class="projectile-image-setting">
                   <span>Image</span>
                   <span id="projectile-image-name" class="sound-file-name">No image selected</span>
@@ -363,26 +396,26 @@
                   <input id="projectile-rotation-value" type="number" min="0" max="359" step="1" value="90" aria-label="Projectile direction in degrees" />
                   <span>°</span>
                 </div>
-                <label class="hitbox-anchored-setting"><input id="projectile-rotate-to-direction" type="checkbox" checked />Rotate to direction</label>
+                <label class="hitbox-anchored-setting"><input id="projectile-rotate-to-direction" type="checkbox" />Rotate to direction</label>
                 <label class="hitbox-anchored-setting"><input id="projectile-tracks" type="checkbox" />Tracks</label>
-                <label class="hitbox-anchored-setting"><input id="projectile-piercing" type="checkbox" />Piercing</label>
-                <label id="projectile-hit-rate-setting" class="hitbox-damage-setting" hidden>Hit Rate (seconds)
+                <label class="hitbox-anchored-setting projectile-legacy-setting"><input id="projectile-piercing" type="checkbox" />Piercing</label>
+                <label id="projectile-hit-rate-setting" class="hitbox-damage-setting projectile-legacy-setting" hidden>Hit Rate (seconds)
                   <input id="projectile-hit-rate" type="number" min="0" step="0.1" value="1" />
                 </label>
-                <label id="projectile-damage-deduction-setting" class="hitbox-damage-setting" hidden>Piercing Damage Deduction
+                <label id="projectile-damage-deduction-setting" class="hitbox-damage-setting projectile-legacy-setting" hidden>Piercing Damage Deduction
                   <input id="projectile-damage-deduction" type="number" min="0" step="1" value="0" />
                 </label>
                 <label id="projectile-angle-offset-setting" class="hitbox-damage-setting" hidden>Angle offset (°)
                   <input id="projectile-angle-offset" type="number" min="0" max="180" step="1" value="0" />
                 </label>
-                <label id="projectile-homing-setting" class="hitbox-damage-setting" hidden>Homing (°/second)
+                <label id="projectile-homing-setting" class="hitbox-damage-setting projectile-legacy-setting" hidden>Homing (°/second)
                   <input id="projectile-homing" type="number" min="0" max="3600" step="1" value="0" />
                 </label>
                 <label class="hitbox-damage-setting">Size
-                  <input id="projectile-size" type="number" min="0.1" max="10" step="0.1" value="1" />
+                  <input id="projectile-size" type="number" min="0" max="10" step="0.1" value="1" />
                 </label>
                 <label class="hitbox-damage-setting">End size
-                  <input id="projectile-end-size" type="number" min="0.1" max="10" step="0.1" value="1" />
+                  <input id="projectile-end-size" type="number" min="0" max="10" step="0.1" value="1" />
                 </label>
                 <label class="hitbox-damage-setting">Bounce count
                   <input id="projectile-bounce-count" type="number" min="0" max="99" step="1" value="0" />
@@ -390,6 +423,85 @@
                 <label class="hitbox-damage-setting">Damage fall-off
                   <input id="projectile-falloff" type="number" min="0" max="9999" step="0.1" value="0" />
                 </label>
+              </div>
+              <div id="advanced-projectile-properties" class="advanced-projectile-properties" hidden>
+                <label class="advanced-projectile-behavior-setting">Behavior
+                  <select id="advanced-projectile-behavior">
+                    <option value="All">All</option>
+                    <option value="New">New</option>
+                    <option value="Old">Old</option>
+                  </select>
+                </label>
+                <p class="variable-help">All: every projectile that has matching tags.<br />New: every projectile after this node that has matching tags.<br />Old: every projectile before this node that has matching tags.</p>
+                <label class="hitbox-damage-setting">Projectile ID
+                  <input id="advanced-projectile-id" type="text" />
+                </label>
+                <div class="advanced-projectile-group">
+                  <label class="hitbox-anchored-setting"><input id="advanced-projectile-sticks" type="checkbox" />Sticks</label>
+                  <div id="advanced-projectile-stick-settings" class="advanced-projectile-stick-settings" hidden>
+                    <label class="hitbox-anchored-setting"><input id="advanced-projectile-boundaries" type="checkbox" />Boundaries</label>
+                    <label id="advanced-projectile-boundary-damage-setting" class="hitbox-damage-setting" hidden>Damage while inside
+                      <input id="advanced-projectile-boundary-damage" type="number" min="0" max="9999" step="0.1" value="10" />
+                    </label>
+                    <label class="hitbox-anchored-setting"><input id="advanced-projectile-enemy" type="checkbox" />Enemy</label>
+                    <label id="advanced-projectile-bounce-damage-setting" class="hitbox-damage-setting" hidden>Bounce damage
+                      <input id="advanced-projectile-bounce-damage" type="number" min="0" max="9999" step="1" value="10" />
+                    </label>
+                    <label class="hitbox-anchored-setting"><input id="advanced-projectile-hit-self" type="checkbox" />Hit Self</label>
+                    <label class="hitbox-anchored-setting"><input id="advanced-projectile-skip-on-touch" type="checkbox" />Skip on Touch</label>
+                    <label class="hitbox-anchored-setting"><input id="advanced-projectile-cancel-on-touch" type="checkbox" />Cancel on Touch</label>
+                    <div id="advanced-projectile-skip-settings" class="advanced-projectile-skip-settings" hidden>
+                      <button id="advanced-projectile-skip-target" class="node-target-button" type="button">Select node</button>
+                      <div id="advanced-projectile-skip-picker" class="node-target-picker" hidden></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="advanced-projectile-group">
+                  <label class="hitbox-anchored-setting"><input id="advanced-piercing" type="checkbox" />Piercing</label>
+                  <div id="advanced-piercing-properties" class="sub-property-options" hidden>
+                    <label class="hitbox-damage-setting">Hit Rate (seconds)<input id="advanced-hit-rate" type="number" min="0" step="0.01" value="1" /></label>
+                    <label class="hitbox-damage-setting">Piercing Damage Deduction<input id="advanced-damage-deduction" type="number" min="0" step="0.1" value="0" /></label>
+                  </div>
+                </div>
+                <div class="advanced-projectile-group">
+                  <label class="hitbox-anchored-setting"><input id="advanced-homing-enabled" type="checkbox" />Homing</label>
+                  <div id="advanced-homing-properties" class="sub-property-options" hidden>
+                    <label class="hitbox-damage-setting">Homing (°/second)<input id="advanced-homing" type="number" min="0" max="3600" step="1" value="0" /></label>
+                    <label class="hitbox-anchored-setting"><input id="advanced-disable-all" type="checkbox" />Disable all</label>
+                  </div>
+                </div>
+                <div class="advanced-projectile-group">
+                  <label class="hitbox-anchored-setting"><input id="advanced-orbit-enabled" type="checkbox" />Orbit</label>
+                  <div id="advanced-orbit-properties" class="sub-property-options" hidden>
+                    <label class="hitbox-damage-setting">Speed<input id="advanced-orbit-speed" type="number" step="0.1" value="90" /></label>
+                    <label class="hitbox-anchored-setting"><input id="advanced-orbit-aligned" type="checkbox" />Aligned</label>
+                    <label class="hitbox-anchored-setting"><input id="advanced-orbit-counter-clockwise" type="checkbox" />Counter Clockwise</label>
+                    <label class="hitbox-anchored-setting"><input id="advanced-orbit-target-hitbox" type="checkbox" />Target of hitbox</label>
+                    <div id="advanced-orbit-target-picker" class="node-target-picker" hidden></div>
+                    <label class="hitbox-anchored-setting"><input id="advanced-orbit-immune" type="checkbox" />Immune</label>
+                    <label class="hitbox-damage-setting">Distance<input id="advanced-orbit-distance" type="number" min="0" step="0.1" value="150" /></label>
+                    <label class="hitbox-anchored-setting"><input id="advanced-orbit-indestructible" type="checkbox" />Indestructible</label>
+                    <div id="advanced-orbit-indestructible-options" class="sub-property-options" hidden>
+                      <label class="hitbox-anchored-setting"><input id="advanced-orbit-phase-through" type="checkbox" />Phase through arena</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="advanced-projectile-group">
+                  <label class="hitbox-anchored-setting"><input id="advanced-change-property" type="checkbox" />Change Property</label>
+                  <div id="advanced-change-properties" class="sub-property-options" hidden>
+                    <div class="visual-data-setting">
+                      <span>Image</span>
+                      <span id="advanced-change-image-name" class="visual-data-name">No image selected</span>
+                      <input id="advanced-change-image" class="file-picker-input" type="file" accept="image/*" />
+                      <label class="file-picker-button" for="advanced-change-image">Choose image</label>
+                    </div>
+                    <label class="hitbox-damage-setting">Size<input id="advanced-change-size" type="number" min="0" step="0.1" value="1" /></label>
+                    <label class="hitbox-damage-setting">Speed<input id="advanced-change-speed" type="number" min="0" step="0.1" value="420" /></label>
+                    <label class="hitbox-damage-setting">Damage<input id="advanced-change-damage" type="number" step="0.1" value="10" /></label>
+                    <label class="hitbox-damage-setting">Time<input id="advanced-change-time" type="number" min="0" step="0.01" value="4" /></label>
+                    <label class="hitbox-damage-setting">Bounce Count<input id="advanced-change-bounces" type="number" min="0" step="1" value="0" /></label>
+                  </div>
+                </div>
               </div>
               <div id="variable-properties" class="variable-properties" hidden>
                 <label class="hitbox-damage-setting">Variable:
@@ -452,6 +564,19 @@
                 <label class="hitbox-anchored-setting"><input id="skip-target-of-hitbox" type="checkbox" />Target of hitbox</label>
                 <div id="skip-target-picker" class="node-target-picker" hidden></div>
               </div>
+              <div id="comment-properties" class="wait-properties" hidden>
+                <label class="wait-time-setting">Text
+                  <input id="comment-text" type="text" autocomplete="off" />
+                </label>
+              </div>
+              <div id="loop-properties" class="wait-properties" hidden>
+                <span class="skip-property-label">Start at</span>
+                <button id="loop-start-node" class="node-target-button" type="button">Select node</button>
+                <div id="loop-start-node-picker" class="node-target-picker" hidden></div>
+                <label class="wait-time-setting">Loop Amount
+                  <input id="loop-amount" type="number" min="0" max="1000" step="1" value="1" />
+                </label>
+              </div>
               <div id="cancel-properties" class="wait-properties" hidden>
                 <label class="hitbox-anchored-setting"><input id="cancel-never-repeat" type="checkbox" />Never repeat move</label>
                 <label class="wait-time-setting">Move Cooldown
@@ -467,7 +592,8 @@
                   <label class="file-picker-button" for="sound-node-file">Choose file</label>
                 </div>
                 <label class="sound-volume-setting">Volume
-                  <input id="sound-node-volume" type="range" min="0" max="200" step="1" value="100" />
+                  <input id="sound-node-volume" type="range" min="0" max="200" step="0.01" value="100" />
+                  <input id="sound-node-volume-number" type="number" min="0" max="200" step="0.01" value="100" aria-label="Volume percent" />
                   <output id="sound-node-volume-value">100%</output>
                 </label>
                 <label class="wait-time-setting">Start
@@ -551,7 +677,7 @@
                   <label class="visual-towards-setting"><input id="visual-node-mask" type="checkbox" /> Mask to Guy PNG</label>
                 </div>
                 <label id="visual-opacity-setting" class="visual-opacity-setting">Opacity (%)
-                  <input id="visual-node-opacity" type="number" min="0" max="200" step="1" value="50" />
+                  <input id="visual-node-opacity" type="number" min="0" max="100" step="1" value="50" />
                 </label>
                 <label id="visual-target-of-hitbox-setting" class="visual-towards-setting"><input id="visual-node-target-of-hitbox" type="checkbox" /> Target of hitbox</label>
                 <div id="visual-hitbox-target-picker" class="node-target-picker" hidden></div>

@@ -58,6 +58,14 @@ const projectileNodeButton = document.querySelector('#projectile-node');
 const velocityNodeButton = document.querySelector('#velocity-node');
 const soundNodeButton = document.querySelector('#sound-node');
 const waitNodeButton = document.querySelector('#wait-node');
+const loopNodeButton = document.querySelector('#loop-node');
+const loopNodeDetails = document.querySelector('#loop-properties');
+const loopStartNodeButton = document.querySelector('#loop-start-node');
+const loopStartNodePicker = document.querySelector('#loop-start-node-picker');
+const loopAmountInput = document.querySelector('#loop-amount');
+const commentNodeButton = document.querySelector('#comment-node');
+const commentNodeDetails = document.querySelector('#comment-properties');
+const commentTextInput = document.querySelector('#comment-text');
 const visualNodeButton = document.querySelector('#visual-node');
 const hitboxNodeDetails = document.querySelector('.hitbox-properties');
 const projectileNodeDetails = document.querySelector('#projectile-properties');
@@ -98,6 +106,7 @@ const projectileSizeInput = document.querySelector('#projectile-size');
 const projectileEndSizeInput = document.querySelector('#projectile-end-size');
 const projectileTracksInput = document.querySelector('#projectile-tracks');
 const projectilePiercingInput = document.querySelector('#projectile-piercing');
+const projectileStacksInput = document.querySelector('#projectile-stacks');
 const projectileHitRateSetting = document.querySelector('#projectile-hit-rate-setting');
 const projectileHitRateInput = document.querySelector('#projectile-hit-rate');
 const projectileDamageDeductionSetting = document.querySelector('#projectile-damage-deduction-setting');
@@ -129,6 +138,7 @@ const soundNodeFileInput = document.querySelector('#sound-node-file');
 const soundNodeFileName = document.querySelector('#sound-node-file-name');
 const soundNodeVolumeInput = document.querySelector('#sound-node-volume');
 const soundNodeVolumeValue = document.querySelector('#sound-node-volume-value');
+const soundNodeVolumeNumberInput = document.querySelector('#sound-node-volume-number');
 const soundNodeCancelInput = document.querySelector('#sound-node-cancel');
 const soundNodeStartInput = document.querySelector('#sound-node-start');
 const soundNodeFadeInput = document.querySelector('#sound-node-fade');
@@ -152,6 +162,53 @@ const visualTargetPicker = document.querySelector('#visual-hitbox-target-picker'
 const waitTargetPicker = document.querySelector('#wait-hitbox-target-picker');
 const skipNodeButton = document.querySelector('#skip-node');
 const randomSkipNodeButton = document.querySelector('#random-skip-node');
+const advancedProjectileNodeButton = document.querySelector('#advanced-projectile-node');
+const advancedProjectileNodeDetails = document.querySelector('#advanced-projectile-properties');
+const advancedProjectileBehaviorInput = document.querySelector('#advanced-projectile-behavior');
+const advancedProjectileIdInput = document.querySelector('#advanced-projectile-id');
+const advancedProjectileSticksInput = document.querySelector('#advanced-projectile-sticks');
+const advancedProjectileStickSettings = document.querySelector('#advanced-projectile-stick-settings');
+const advancedProjectileBoundariesInput = document.querySelector('#advanced-projectile-boundaries');
+const advancedProjectileEnemyInput = document.querySelector('#advanced-projectile-enemy');
+const advancedProjectileBounceDamageSetting = document.querySelector('#advanced-projectile-bounce-damage-setting');
+const advancedProjectileBounceDamageInput = document.querySelector('#advanced-projectile-bounce-damage');
+const advancedProjectileHitSelfInput = document.querySelector('#advanced-projectile-hit-self');
+const advancedProjectileSkipOnTouchInput = document.querySelector('#advanced-projectile-skip-on-touch');
+const advancedProjectileSkipSettings = document.querySelector('#advanced-projectile-skip-settings');
+const advancedProjectileSkipTargetButton = document.querySelector('#advanced-projectile-skip-target');
+const advancedProjectileSkipPicker = document.querySelector('#advanced-projectile-skip-picker');
+const advancedProjectileBoundaryDamageSetting = document.querySelector('#advanced-projectile-boundary-damage-setting');
+const advancedProjectileBoundaryDamageInput = document.querySelector('#advanced-projectile-boundary-damage');
+const advancedProjectileCancelOnTouchInput = document.querySelector('#advanced-projectile-cancel-on-touch');
+const advancedPiercingInput = document.querySelector('#advanced-piercing');
+const advancedPiercingProperties = document.querySelector('#advanced-piercing-properties');
+const advancedHitRateInput = document.querySelector('#advanced-hit-rate');
+const advancedDamageDeductionInput = document.querySelector('#advanced-damage-deduction');
+const advancedHomingEnabledInput = document.querySelector('#advanced-homing-enabled');
+const advancedHomingProperties = document.querySelector('#advanced-homing-properties');
+const advancedHomingInput = document.querySelector('#advanced-homing');
+const advancedDisableAllInput = document.querySelector('#advanced-disable-all');
+const advancedOrbitEnabledInput = document.querySelector('#advanced-orbit-enabled');
+const advancedOrbitProperties = document.querySelector('#advanced-orbit-properties');
+const advancedOrbitSpeedInput = document.querySelector('#advanced-orbit-speed');
+const advancedOrbitAlignedInput = document.querySelector('#advanced-orbit-aligned');
+const advancedOrbitCounterClockwiseInput = document.querySelector('#advanced-orbit-counter-clockwise');
+const advancedOrbitTargetHitboxInput = document.querySelector('#advanced-orbit-target-hitbox');
+const advancedOrbitTargetPicker = document.querySelector('#advanced-orbit-target-picker');
+const advancedOrbitImmuneInput = document.querySelector('#advanced-orbit-immune');
+const advancedOrbitDistanceInput = document.querySelector('#advanced-orbit-distance');
+const advancedOrbitIndestructibleInput = document.querySelector('#advanced-orbit-indestructible');
+const advancedOrbitIndestructibleOptions = document.querySelector('#advanced-orbit-indestructible-options');
+const advancedOrbitPhaseThroughInput = document.querySelector('#advanced-orbit-phase-through');
+const advancedChangePropertyInput = document.querySelector('#advanced-change-property');
+const advancedChangeProperties = document.querySelector('#advanced-change-properties');
+const advancedChangeSizeInput = document.querySelector('#advanced-change-size');
+const advancedChangeSpeedInput = document.querySelector('#advanced-change-speed');
+const advancedChangeDamageInput = document.querySelector('#advanced-change-damage');
+const advancedChangeImageInput = document.querySelector('#advanced-change-image');
+const advancedChangeImageName = document.querySelector('#advanced-change-image-name');
+const advancedChangeTimeInput = document.querySelector('#advanced-change-time');
+const advancedChangeBouncesInput = document.querySelector('#advanced-change-bounces');
 const randomSkipNodeDetails = document.querySelector('#random-skip-properties');
 const randomSkipDestinations = document.querySelector('#random-skip-destinations');
 const randomSkipAddButton = document.querySelector('#random-skip-add');
@@ -224,6 +281,12 @@ const hitboxPreview = document.querySelector('#hitbox-preview');
 const timelineList = document.querySelector('#move-timeline-list');
 const moveModal = document.querySelector('#move-modal');
 const closeMoveModalButton = document.querySelector('#close-move-modal');
+const moveSettingsButton = document.querySelector('#move-settings-button');
+const moveSettingsPanel = document.querySelector('#move-settings-panel');
+const categorizedNodesSetting = document.querySelector('#setting-categorized-nodes');
+const emptySoundsSetting = document.querySelector('#setting-empty-sounds');
+const alwaysSaveMovesSetting = document.querySelector('#setting-always-save-moves');
+const compactModeSetting = document.querySelector('#setting-compact-mode');
 const finishMoveButton = document.querySelector('#finish-move');
 const moveNodeUpButton = document.querySelector('#move-node-up');
 const moveNodeDownButton = document.querySelector('#move-node-down');
@@ -435,9 +498,12 @@ restartButton.addEventListener('click', () => {
   for (const projectile of activeProjectiles) {
     projectile.cancelled = true;
     projectile.complete?.(false);
+    for (const resolveTouch of projectile.skipOnTouchResolvers) resolveTouch(false);
+    projectile.skipOnTouchResolvers.clear();
   }
   activeProjectiles.length = 0;
   projectilePositionCache.clear();
+  advancedProjectilePropertiesById.clear();
   for (const hitbox of activeHitboxes) {
     hitbox.cancelled = true;
     hitbox.complete?.(false);
@@ -859,6 +925,52 @@ setConditionSides(approachSidePicker, approachSideSummary, 'any');
 setConditionSides(damageFromPicker, damageFromSummary, 'any');
 updateDirectionSidePicker();
 
+const moveUiSettings = { categorizedNodes: true, emptySounds: false, alwaysSaveMoves: false, compactMode: false };
+try {
+  Object.assign(moveUiSettings, JSON.parse(localStorage.getItem('guy-maker-move-settings') || '{}'));
+  if (!localStorage.getItem('guy-maker-compact-default-off')) {
+    moveUiSettings.compactMode = false;
+    localStorage.setItem('guy-maker-compact-default-off', '1');
+  }
+} catch {}
+function applyMoveUiSettings() {
+  categorizedNodesSetting.checked = moveUiSettings.categorizedNodes;
+  emptySoundsSetting.checked = moveUiSettings.emptySounds;
+  alwaysSaveMovesSetting.checked = moveUiSettings.alwaysSaveMoves;
+  compactModeSetting.checked = moveUiSettings.compactMode;
+  document.querySelector('.move-nodes').classList.toggle('uncategorized', !moveUiSettings.categorizedNodes);
+  timelineList.classList.toggle('compact', moveUiSettings.compactMode);
+}
+function saveMoveUiSettings() {
+  localStorage.setItem('guy-maker-move-settings', JSON.stringify(moveUiSettings));
+  applyMoveUiSettings();
+}
+function getDefaultSoundProperties() {
+  return moveUiSettings.emptySounds ? { soundURL: '', soundName: 'No sound' } : { soundURL: defaultHitboxSound, soundName: defaultHitboxSoundName };
+}
+moveSettingsButton.addEventListener('click', event => {
+  event.stopPropagation();
+  moveSettingsPanel.hidden = !moveSettingsPanel.hidden;
+  moveSettingsButton.setAttribute('aria-expanded', String(!moveSettingsPanel.hidden));
+});
+moveSettingsPanel.addEventListener('click', event => event.stopPropagation());
+document.addEventListener('click', () => {
+  moveSettingsPanel.hidden = true;
+  moveSettingsButton.setAttribute('aria-expanded', 'false');
+});
+function expandNodeCategories() {
+  document.querySelectorAll('.move-nodes .node-category').forEach(category => { category.open = true; });
+}
+for (const [input, key] of [[categorizedNodesSetting, 'categorizedNodes'], [emptySoundsSetting, 'emptySounds'], [alwaysSaveMovesSetting, 'alwaysSaveMoves'], [compactModeSetting, 'compactMode']]) {
+  input.addEventListener('change', () => {
+    moveUiSettings[key] = input.checked;
+    if (key === 'categorizedNodes') expandNodeCategories();
+    saveMoveUiSettings();
+  });
+}
+expandNodeCategories();
+applyMoveUiSettings();
+
 function updateMoveCondition() {
   collisionProperties.hidden = moveConditionSelect.value !== 'collision';
   damagedProperties.hidden = moveConditionSelect.value !== 'damaged';
@@ -875,6 +987,13 @@ function getSelectedGuySquare() {
   return categorySelect.value === 'guy-one' ? squares[1] : squares[0];
 }
 
+function setMovePreviewArena(preview, square, unit) {
+  const arenaWidth = canvas.clientWidth || defaultArenaSize || square.size;
+  const arenaHeight = canvas.clientHeight || arenaWidth;
+  preview.style.setProperty('--move-arena-width', `${arenaWidth * unit}px`);
+  preview.style.setProperty('--move-arena-height', `${arenaHeight * unit}px`);
+}
+
 function updateVisualPreview(node = draftNodes.find(item => item.id === selectedNodeId)) {
   if (!node || node.type !== 'visual') return;
   const square = getSelectedGuySquare();
@@ -885,6 +1004,7 @@ function updateVisualPreview(node = draftNodes.find(item => item.id === selected
   const image = !isFlash ? node.image : null;
   const scale = Math.max(0, Number(node.scale) || 0);
   const unit = 0.38;
+  setMovePreviewArena(visualNodePreview, square, unit);
 
   visualNodePreview.classList.toggle('is-flash', isFlash);
   visualNodePreview.style.setProperty('--preview-guy-color', square.color);
@@ -903,7 +1023,7 @@ function updateVisualPreview(node = draftNodes.find(item => item.id === selected
   visualNodePreview.style.setProperty('--preview-rotation', `${Number(node.rotation) || 0}deg`);
   const previewOpacity = node.opacity == null
     ? (isFlash ? 50 : 100)
-    : Math.max(0, Math.min(isFlash ? 200 : 100, Number(node.opacity) || 0));
+    : Math.max(0, Math.min(100, Number(node.opacity) || 0));
   visualNodePreview.style.setProperty('--preview-opacity', String(previewOpacity / 100));
   visualPreviewGuyImage.style.transform = isSpriteReplace ? `rotate(${Number(node.rotation) || 0}deg)` : '';
   visualPreviewGuyImage.style.opacity = '1';
@@ -964,10 +1084,12 @@ const soundCleanupByAudio = new WeakMap();
 const activeVisuals = [];
 const activeHitboxes = [];
 const activeProjectiles = [];
+const advancedProjectilePropertiesById = new Map();
 const familiarMaskWidth = 48;
 const familiarMaskHeight = 132;
 let familiarMaskPoints = [];
-let familiarMaskCanvas = null;
+let familiarMaskFillPath = null;
+let familiarMaskOutlinePath = null;
 const familiarMaskReady = new Promise(resolve => {
   const image = new Image();
   image.onload = () => {
@@ -977,6 +1099,7 @@ const familiarMaskReady = new Promise(resolve => {
     const maskContext = canvas.getContext('2d', { willReadFrequently: true });
     maskContext.drawImage(image, 0, 0, familiarMaskWidth, familiarMaskHeight);
     const imageData = maskContext.getImageData(0, 0, familiarMaskWidth, familiarMaskHeight);
+    const opaque = new Uint8Array(familiarMaskWidth * familiarMaskHeight);
     for (let y = 0; y < familiarMaskHeight; y++) {
       for (let x = 0; x < familiarMaskWidth; x++) {
         const offset = (y * familiarMaskWidth + x) * 4;
@@ -984,11 +1107,31 @@ const familiarMaskReady = new Promise(resolve => {
         imageData.data[offset] = 255;
         imageData.data[offset + 1] = 255;
         imageData.data[offset + 2] = 255;
-        if (alpha > 64) familiarMaskPoints.push({ x: (x + 0.5) / familiarMaskWidth - 0.5, y: (y + 0.5) / familiarMaskHeight - 0.5 });
+        if (alpha > 64) {
+          opaque[y * familiarMaskWidth + x] = 1;
+          familiarMaskPoints.push({ x: (x + 0.5) / familiarMaskWidth - 0.5, y: (y + 0.5) / familiarMaskHeight - 0.5 });
+        }
+      }
+    }
+    const fillPath = new Path2D();
+    const outlinePath = new Path2D();
+    for (let y = 0; y < familiarMaskHeight; y++) {
+      for (let x = 0; x < familiarMaskWidth; x++) {
+        if (!opaque[y * familiarMaskWidth + x]) continue;
+        const left = x / familiarMaskWidth - 0.5;
+        const right = (x + 1) / familiarMaskWidth - 0.5;
+        const top = y / familiarMaskHeight - 0.5;
+        const bottom = (y + 1) / familiarMaskHeight - 0.5;
+        fillPath.rect(left, top, right - left, bottom - top);
+        if (!x || !opaque[y * familiarMaskWidth + x - 1]) { outlinePath.moveTo(left, top); outlinePath.lineTo(left, bottom); }
+        if (x === familiarMaskWidth - 1 || !opaque[y * familiarMaskWidth + x + 1]) { outlinePath.moveTo(right, top); outlinePath.lineTo(right, bottom); }
+        if (!y || !opaque[(y - 1) * familiarMaskWidth + x]) { outlinePath.moveTo(left, top); outlinePath.lineTo(right, top); }
+        if (y === familiarMaskHeight - 1 || !opaque[(y + 1) * familiarMaskWidth + x]) { outlinePath.moveTo(left, bottom); outlinePath.lineTo(right, bottom); }
       }
     }
     maskContext.putImageData(imageData, 0, 0);
-    familiarMaskCanvas = canvas;
+    familiarMaskFillPath = fillPath;
+    familiarMaskOutlinePath = outlinePath;
     resolve();
   };
   image.onerror = () => resolve();
@@ -1010,11 +1153,114 @@ function removeProjectileFromPlay(projectile) {
   rememberProjectilePosition(projectile);
   const index = activeProjectiles.indexOf(projectile);
   if (index >= 0) activeProjectiles.splice(index, 1);
+  for (const resolveTouch of projectile.skipOnTouchResolvers ?? []) resolveTouch(false);
+  projectile.skipOnTouchResolvers?.clear();
+}
+
+function cancelProjectilesById(idKey, sourceProjectile = null) {
+  const matches = idKey ? activeProjectiles.filter(item => item.idKey === idKey) : sourceProjectile ? [sourceProjectile] : [];
+  for (const projectile of matches) {
+    removeProjectileFromPlay(projectile);
+    projectile.cancelled = true;
+    projectile.complete?.(false);
+    projectile.complete = null;
+  }
+}
+
+function applyAdvancedProjectileConfiguration(projectile, config) {
+  projectile.advanced = config;
+  projectile.sticksToBoundaries = Boolean(config.sticks && config.boundaries);
+  projectile.sticksToEnemy = Boolean(config.sticks && config.enemy);
+  projectile.hitSelfWhenStuck = Boolean(config.sticks && config.hitSelf);
+  projectile.bounceDamage = config.enemy ? Math.max(0, Number(config.bounceDamage) || 0) : 0;
+  projectile.boundaryDamage = config.sticks && config.boundaries ? Math.max(0, Number(config.boundaryDamage) || 0) : 0;
+  projectile.cancelOnTouch = Boolean(config.cancelOnTouch);
+  if (config.piercing !== undefined) projectile.piercing = Boolean(config.piercing);
+  if (config.hitRate !== undefined) projectile.hitRate = Math.max(0, Number(config.hitRate) || 0);
+  if (config.damageDeduction !== undefined) projectile.damageDeduction = Math.max(0, Number(config.damageDeduction) || 0);
+  if (config.homingEnabled) {
+    projectile.homing = Math.max(0, Number(config.homing) || 0);
+    projectile.tracks = true;
+  }
+  projectile.indestructible = Boolean(config.orbit?.enabled && config.orbit.indestructible && !(config.homingEnabled && config.disableAll));
+  projectile.immuneIndex = config.orbit?.enabled && config.orbit.immune ? config.orbit.centerIndex : null;
+  const disableOtherProperties = Boolean(config.homingEnabled && config.disableAll);
+  if (disableOtherProperties) {
+    projectile.speed = projectile.defaultSpeed;
+    const restoredHeading = Math.hypot(projectile.vx, projectile.vy) > 0 ? Math.atan2(projectile.vy, projectile.vx) : projectile.heading ?? projectile.defaultDirection;
+    projectile.heading = restoredHeading;
+    projectile.vx = Math.cos(restoredHeading) * projectile.speed;
+    projectile.vy = Math.sin(restoredHeading) * projectile.speed;
+    projectile.baseSize = projectile.defaultBaseSize;
+    projectile.endSizeMultiplier = projectile.defaultEndSizeMultiplier;
+    projectile.radius = projectile.baseSize / 2;
+    projectile.damage = projectile.defaultDamage;
+    projectile.image = projectile.defaultImage;
+    projectile.imageBounds = projectile.defaultImageBounds;
+    projectile.rotateSpeed = 0;
+    projectile.rotation = 0;
+    projectile.rotateToDirection = false;
+    projectile.falloff = 0;
+    projectile.bouncesRemaining = projectile.defaultBounces;
+    projectile.sticksToBoundaries = false;
+    projectile.sticksToEnemy = false;
+    projectile.hitSelfWhenStuck = false;
+    projectile.bounceDamage = 0;
+    for (const resolveTouch of projectile.skipOnTouchResolvers ?? []) resolveTouch(false);
+    projectile.skipOnTouchResolvers?.clear();
+    projectile.boundaryDamage = 0;
+    projectile.cancelOnTouch = false;
+    projectile.indestructible = false;
+    projectile.immuneIndex = null;
+    projectile.orbitDisabled = false;
+    projectile.startedAt = simulationTime;
+    projectile.expiresAt = simulationTime + projectile.defaultDuration;
+    projectile.tracks = Boolean(config.homingEnabled);
+  } else if (config.changeEnabled) {
+    const size = Number(config.changeSize);
+    if (Number.isFinite(size)) {
+      if (size <= 0) {
+        removeProjectileFromPlay(projectile);
+        projectile.complete?.(false);
+        projectile.complete = null;
+        return false;
+      }
+      projectile.baseSize = 75 * size;
+      projectile.radius = projectile.baseSize / 2;
+    }
+    if (Number.isFinite(Number(config.changeSpeed))) {
+      projectile.speed = Number(config.changeSpeed);
+      const angle = Math.hypot(projectile.vx, projectile.vy) > 0 ? Math.atan2(projectile.vy, projectile.vx) : projectile.heading ?? projectile.defaultDirection;
+      projectile.heading = angle;
+      projectile.vx = Math.cos(angle) * projectile.speed;
+      projectile.vy = Math.sin(angle) * projectile.speed;
+    }
+    if (Number.isFinite(Number(config.changeDamage))) projectile.damage = Number(config.changeDamage);
+    if (config.changeImage) { projectile.image = config.changeImage; projectile.imageBounds = config.changeImageBounds; }
+    if (Number.isFinite(Number(config.changeTime))) {
+      projectile.startedAt = simulationTime;
+      projectile.expiresAt = simulationTime + Math.max(0, Number(config.changeTime));
+    }
+    if (Number.isFinite(Number(config.changeBounces))) projectile.bouncesRemaining = Math.max(0, Math.floor(Number(config.changeBounces)));
+  }
+  if (config.orbit?.enabled && !disableOtherProperties) {
+    config.orbit.startedAt ??= simulationTime;
+    projectile.stuckTo = null;
+    projectile.orbitDisabled = false;
+    projectile.orbitDirection = config.orbit.counterClockwise ? -1 : 1;
+    projectile.orbitStartedAt = config.orbit.startedAt;
+    projectile.orbitBaseAngle = 0;
+    projectile.orbitWasOutside = false;
+  }
+  return true;
 }
 
 function clearPreviewProjectilePositions() {
   for (const key of projectilePositionCache.keys()) {
     if (key.startsWith('preview:')) projectilePositionCache.delete(key);
+  }
+  for (const key of advancedProjectilePropertiesById.keys()) {
+    if (key.startsWith('preview:')) advancedProjectilePropertiesById.delete(key);
   }
 }
 let simulationTime = 0;
@@ -1028,7 +1274,11 @@ const variableNumberProperties = {
   'projectile-damage': 'damage', 'projectile-speed': 'speed', 'projectile-time': 'time', 'projectile-rotate-speed': 'rotateSpeed',
   'projectile-rotation-value': 'rotation', 'projectile-hit-rate': 'hitRate', 'projectile-damage-deduction': 'damageDeduction',
   'projectile-angle-offset': 'angleOffset', 'projectile-homing': 'homing', 'projectile-size': 'size', 'projectile-end-size': 'endSize',
-  'projectile-bounce-count': 'bounceCount', 'projectile-falloff': 'falloff', 'cancel-move-cooldown': 'moveCooldown',
+  'projectile-bounce-count': 'bounceCount', 'projectile-falloff': 'falloff', 'advanced-projectile-bounce-damage': 'bounceDamage',
+  'advanced-projectile-boundary-damage': 'boundaryDamage', 'advanced-hit-rate': 'hitRate', 'advanced-damage-deduction': 'damageDeduction',
+  'advanced-homing': 'homing', 'advanced-orbit-speed': 'orbitSpeed', 'advanced-orbit-distance': 'orbitDistance',
+  'advanced-change-size': 'changeSize', 'advanced-change-speed': 'changeSpeed', 'advanced-change-damage': 'changeDamage',
+  'advanced-change-time': 'changeTime', 'advanced-change-bounces': 'changeBounces', 'cancel-move-cooldown': 'moveCooldown',
   'sound-node-start': 'start', 'wait-node-time': 'time', 'velocity-speed': 'speed', 'velocity-distance': 'distance',
   'velocity-rotation-value': 'rotation', 'visual-node-scale': 'scale', 'visual-node-position-x': 'positionX',
   'visual-node-position-y': 'positionY', 'visual-rotation-value': 'rotation', 'visual-node-speed': 'speed',
@@ -1062,13 +1312,16 @@ let editingMoveId = null;
 let moveReturnFocus = addMoveButton;
 
 function getTimelineNodeClass(node) {
+  if (node.type === 'advanced-projectile') return 'advanced-projectile-timeline-node';
   if (node.type === 'skip') return 'skip-timeline-node';
   if (node.type === 'random-skip') return 'random-skip-timeline-node';
   if (node.type === 'state') return 'state-timeline-node';
   if (node.type === 'cancel') return 'cancel-timeline-node';
+  if (node.type === 'comment') return 'comment-timeline-node';
   if (node.type === 'variable') return 'variable-timeline-node';
   if (node.type === 'sound') return 'sound-timeline-node';
   if (node.type === 'wait') return 'wait-timeline-node';
+  if (node.type === 'loop') return 'loop-timeline-node';
   if (node.type === 'visual') return 'visual-timeline-node';
   if (node.type === 'projectile') return 'projectile-timeline-node';
   if (node.type === 'velocity') return 'velocity-timeline-node';
@@ -1131,6 +1384,38 @@ moveModal.addEventListener('change', () => {
     }
   });
 }, true);
+
+function configureFutureNodePicker(node, button, picker) {
+  const selectedNode = draftNodes.find(item => item.id === node.skipNodeId);
+  button.className = selectedNode ? `node-target-button ${getTimelineNodeClass(selectedNode)}` : 'node-target-button';
+  button.textContent = selectedNode ? getTimelineNodeLabel(selectedNode) : 'Select node';
+  picker.hidden = true;
+  button.onclick = () => {
+    picker.replaceChildren();
+    picker.hidden = !picker.hidden;
+    if (picker.hidden) return;
+    const candidates = draftNodes.filter(item => item.id !== node.id);
+    if (!candidates.length) {
+      const empty = document.createElement('span');
+      empty.textContent = 'Add another node to select it.';
+      picker.append(empty);
+    }
+    for (const candidate of candidates) {
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.className = `node-target-button ${getTimelineNodeClass(candidate)}`;
+      option.textContent = getTimelineNodeLabel(candidate);
+      option.addEventListener('click', () => {
+        node.skipNodeId = candidate.id;
+        button.className = `node-target-button ${getTimelineNodeClass(candidate)}`;
+        button.textContent = getTimelineNodeLabel(candidate);
+        picker.hidden = true;
+        updateNodeMoveButtons();
+      });
+      picker.append(option);
+    }
+  };
+}
 
 function renderHitboxTargetPicker(container, node, property, multiple = true) {
   container.hidden = false;
@@ -1234,10 +1519,15 @@ function removeSelectedNode() {
   variableNodeDetails.hidden = true;
   stateNodeDetails.hidden = true;
   randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   }
 }
 
 function getTimelineNodeLabel(node) {
+  if (node.type === 'loop') return `Loop [${node.loopAmount ?? 1}]`;
+  if (node.type === 'advanced-projectile') return node.projectileId ? `Advanced Projectile [${node.projectileId}]` : 'Advanced Projectile';
   if (node.type === 'hitbox') return `Hitbox [${node.damage ?? 10}]`;
   if (node.type === 'projectile') return `Projectile [${node.damage ?? 10}]`;
   if (node.type === 'sound') return `Sound [${node.soundName || defaultHitboxSoundName}]`;
@@ -1247,6 +1537,7 @@ function getTimelineNodeLabel(node) {
   if (node.type === 'random-skip') return 'Random Skip';
   if (node.type === 'state') return `State [${node.stateType || 'IFrames'}]`;
   if (node.type === 'cancel') return 'Cancel';
+  if (node.type === 'comment') return node.text ?? 'Comment';
   if (node.type === 'variable') return node.variable ? `Variable [${node.variable}]` : 'Variable';
   return `Wait [${node.time ?? 1}]`;
 }
@@ -1272,14 +1563,68 @@ function selectTimelineNode(nodeId) {
   variableNodeDetails.hidden = node.type !== 'variable';
   stateNodeDetails.hidden = node.type !== 'state';
   randomSkipNodeDetails.hidden = node.type !== 'random-skip';
+  advancedProjectileNodeDetails.hidden = node.type !== 'advanced-projectile';
+  loopNodeDetails.hidden = node.type !== 'loop';
+  commentNodeDetails.hidden = node.type !== 'comment';
   timelineList.querySelectorAll('.timeline-node').forEach(button => {
     button.setAttribute('aria-pressed', String(Number(button.dataset.nodeId) === selectedNodeId));
   });
   updateNodeMoveButtons();
+  if (node.type === 'comment') {
+    commentTextInput.value = node.text ?? '';
+    commentTextInput.oninput = () => {
+      node.text = commentTextInput.value;
+      updateTimelineNodeLabel(node);
+    };
+    return;
+  }
+  if (node.type === 'loop') {
+    loopAmountInput.value = node.loopAmount ?? 1;
+    const updateLoopStartButton = () => {
+      const startNode = draftNodes.find(item => item.id === node.loopStartNodeId);
+      loopStartNodeButton.className = startNode ? `node-target-button ${getTimelineNodeClass(startNode)}` : 'node-target-button';
+      loopStartNodeButton.textContent = startNode ? getTimelineNodeLabel(startNode) : 'Select node';
+    };
+    updateLoopStartButton();
+    loopStartNodePicker.hidden = true;
+    loopStartNodeButton.onclick = () => {
+      loopStartNodePicker.replaceChildren();
+      loopStartNodePicker.hidden = !loopStartNodePicker.hidden;
+      if (loopStartNodePicker.hidden) return;
+      const nodeIndex = draftNodes.findIndex(item => item.id === node.id);
+      const candidates = draftNodes.slice(0, nodeIndex);
+      if (!candidates.length) {
+        const empty = document.createElement('span');
+        empty.textContent = 'Add a node before this Loop.';
+        loopStartNodePicker.append(empty);
+      }
+      for (const candidate of candidates) {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = `node-target-button ${getTimelineNodeClass(candidate)}`;
+        option.textContent = getTimelineNodeLabel(candidate);
+        option.addEventListener('click', () => {
+          node.loopStartNodeId = candidate.id;
+          updateLoopStartButton();
+          loopStartNodePicker.hidden = true;
+        });
+        loopStartNodePicker.append(option);
+      }
+    };
+    loopAmountInput.oninput = () => {
+      const amount = loopAmountInput.valueAsNumber;
+      if (Number.isFinite(amount)) {
+        node.loopAmount = Math.max(0, Math.min(1000, Math.floor(amount)));
+        updateTimelineNodeLabel(node);
+      }
+    };
+    return;
+  }
   if (node.type === 'sound') {
     soundNodeFileInput.value = '';
-    soundNodeFileName.textContent = node.soundName || defaultHitboxSoundName;
+    soundNodeFileName.textContent = node.soundName ?? defaultHitboxSoundName;
     soundNodeVolumeInput.value = node.volume ?? 100;
+    soundNodeVolumeNumberInput.value = node.volume ?? 100;
     soundNodeVolumeValue.textContent = `${node.volume ?? 100}%`;
     soundNodeCancelInput.checked = Boolean(node.cancel);
     soundNodeStackInput.checked = Boolean(node.stack);
@@ -1293,10 +1638,15 @@ function selectTimelineNode(nodeId) {
       soundNodeFileName.textContent = file.name;
       updateTimelineNodeLabel(node);
     };
-    soundNodeVolumeInput.oninput = () => {
-      node.volume = Number(soundNodeVolumeInput.value);
+    const updateSoundVolume = value => {
+      if (!Number.isFinite(value)) return;
+      node.volume = Math.max(0, Math.min(200, value));
+      soundNodeVolumeInput.value = node.volume;
+      soundNodeVolumeNumberInput.value = node.volume;
       soundNodeVolumeValue.textContent = `${node.volume}%`;
     };
+    soundNodeVolumeInput.oninput = () => updateSoundVolume(Number(soundNodeVolumeInput.value));
+    soundNodeVolumeNumberInput.oninput = () => updateSoundVolume(soundNodeVolumeNumberInput.valueAsNumber);
     soundNodeCancelInput.onchange = () => { node.cancel = soundNodeCancelInput.checked; };
     soundNodeStackInput.onchange = () => { node.stack = soundNodeStackInput.checked; };
     soundNodeStartInput.oninput = () => {
@@ -1367,13 +1717,12 @@ function selectTimelineNode(nodeId) {
         const picker = document.createElement('div');
         picker.className = 'node-target-choices';
         picker.hidden = true;
-        const currentIndex = draftNodes.findIndex(item => item.id === node.id);
-        const candidates = draftNodes.filter((item, itemIndex) => itemIndex > currentIndex);
+        const candidates = draftNodes.filter(item => item.id !== node.id);
         candidates.forEach(candidate => {
           const option = document.createElement('button'); option.type = 'button'; option.className = `node-target-button ${getTimelineNodeClass(candidate)}`; option.textContent = getTimelineNodeLabel(candidate);
           option.addEventListener('click', () => { destination.nodeId = candidate.id; renderDestinations(); }); picker.append(option);
         });
-        if (!candidates.length) { const empty = document.createElement('span'); empty.textContent = 'Add a node after Random Skip first.'; picker.append(empty); }
+        if (!candidates.length) { const empty = document.createElement('span'); empty.textContent = 'Add another node to select it.'; picker.append(empty); }
         pick.addEventListener('click', () => { picker.hidden = !picker.hidden; });
         row.append(pick, chance, remove, picker);
         randomSkipDestinations.append(row);
@@ -1381,6 +1730,127 @@ function selectTimelineNode(nodeId) {
     };
     renderDestinations();
     randomSkipAddButton.onclick = () => { node.destinations.push({ nodeId: null, chance: '' }); renderDestinations(); };
+    return;
+  }
+  if (node.type === 'advanced-projectile') {
+    Object.assign(node, {
+      behavior: node.behavior ?? 'All',
+      projectileId: node.projectileId ?? '',
+      bounceDamage: node.bounceDamage ?? 10,
+      boundaryDamage: node.boundaryDamage ?? 10,
+      hitRate: node.hitRate ?? 1,
+      damageDeduction: node.damageDeduction ?? 0,
+      homing: node.homing ?? 0,
+      orbitSpeed: node.orbitSpeed ?? 90,
+      orbitDistance: node.orbitDistance ?? 150,
+      phaseThroughArena: Boolean(node.phaseThroughArena),
+      changeSize: node.changeSize ?? 1,
+      changeSpeed: node.changeSpeed ?? 420,
+      changeDamage: node.changeDamage ?? 10,
+      changeTime: node.changeTime ?? 4,
+      changeBounces: node.changeBounces ?? 0,
+    });
+    advancedProjectileBehaviorInput.value = node.behavior;
+    advancedProjectileIdInput.value = node.projectileId;
+    advancedProjectileSticksInput.checked = Boolean(node.sticks);
+    advancedProjectileStickSettings.hidden = !node.sticks;
+    advancedProjectileBoundariesInput.checked = Boolean(node.boundaries);
+    advancedProjectileBoundaryDamageSetting.hidden = !node.sticks || !node.boundaries;
+    advancedProjectileBoundaryDamageInput.value = node.boundaryDamage;
+    advancedProjectileEnemyInput.checked = Boolean(node.enemy);
+    advancedProjectileBounceDamageSetting.hidden = !node.enemy;
+    advancedProjectileBounceDamageInput.value = node.bounceDamage;
+    advancedProjectileHitSelfInput.checked = Boolean(node.hitSelf);
+    advancedProjectileSkipOnTouchInput.checked = Boolean(node.skipOnTouch);
+    advancedProjectileCancelOnTouchInput.checked = Boolean(node.cancelOnTouch);
+    advancedProjectileSkipSettings.hidden = !node.sticks || !node.skipOnTouch;
+    configureFutureNodePicker(node, advancedProjectileSkipTargetButton, advancedProjectileSkipPicker);
+    advancedPiercingInput.checked = Boolean(node.piercing);
+    advancedPiercingProperties.hidden = !node.piercing;
+    advancedHitRateInput.value = node.hitRate;
+    advancedDamageDeductionInput.value = node.damageDeduction;
+    advancedHomingEnabledInput.checked = Boolean(node.homingEnabled);
+    advancedHomingProperties.hidden = !node.homingEnabled;
+    advancedHomingInput.value = node.homing;
+    advancedDisableAllInput.checked = Boolean(node.disableAll);
+    advancedOrbitEnabledInput.checked = Boolean(node.orbitEnabled);
+    advancedOrbitProperties.hidden = !node.orbitEnabled;
+    advancedOrbitSpeedInput.value = node.orbitSpeed;
+    advancedOrbitAlignedInput.checked = Boolean(node.orbitAligned);
+    advancedOrbitCounterClockwiseInput.checked = Boolean(node.orbitCounterClockwise);
+    advancedOrbitTargetHitboxInput.checked = Boolean(node.orbitTargetOfHitbox);
+    advancedOrbitTargetPicker.hidden = !node.orbitTargetOfHitbox;
+    if (node.orbitTargetOfHitbox) renderHitboxTargetPicker(advancedOrbitTargetPicker, node, 'orbitTargetNodeIds', false);
+    advancedOrbitImmuneInput.checked = Boolean(node.orbitImmune);
+    advancedOrbitDistanceInput.value = node.orbitDistance;
+    advancedOrbitIndestructibleInput.checked = Boolean(node.orbitIndestructible);
+    advancedOrbitIndestructibleOptions.hidden = !node.orbitIndestructible;
+    advancedOrbitPhaseThroughInput.checked = Boolean(node.phaseThroughArena);
+    advancedChangePropertyInput.checked = Boolean(node.changeEnabled);
+    advancedChangeProperties.hidden = !node.changeEnabled;
+    advancedChangeSizeInput.value = node.changeSize;
+    advancedChangeSpeedInput.value = node.changeSpeed;
+    advancedChangeDamageInput.value = node.changeDamage;
+    advancedChangeTimeInput.value = node.changeTime;
+    advancedChangeBouncesInput.value = node.changeBounces;
+    advancedChangeImageInput.value = '';
+    advancedChangeImageName.textContent = node.changeImageName || 'No image selected';
+    advancedProjectileBehaviorInput.onchange = () => { node.behavior = advancedProjectileBehaviorInput.value; };
+    advancedProjectileIdInput.oninput = () => { node.projectileId = advancedProjectileIdInput.value; updateTimelineNodeLabel(node); };
+    advancedProjectileSticksInput.onchange = () => {
+      node.sticks = advancedProjectileSticksInput.checked;
+      advancedProjectileStickSettings.hidden = !node.sticks;
+      advancedProjectileBoundaryDamageSetting.hidden = !node.sticks || !node.boundaries;
+      advancedProjectileSkipSettings.hidden = !node.sticks || !node.skipOnTouch;
+    };
+    advancedProjectileBoundariesInput.onchange = () => {
+      node.boundaries = advancedProjectileBoundariesInput.checked;
+      advancedProjectileBoundaryDamageSetting.hidden = !node.sticks || !node.boundaries;
+    };
+    advancedProjectileEnemyInput.onchange = () => {
+      node.enemy = advancedProjectileEnemyInput.checked;
+      advancedProjectileBounceDamageSetting.hidden = !node.enemy;
+    };
+    advancedProjectileBounceDamageInput.oninput = () => { const value = advancedProjectileBounceDamageInput.valueAsNumber; if (Number.isFinite(value)) node.bounceDamage = Math.max(0, Math.min(9999, value)); };
+    advancedProjectileBoundaryDamageInput.oninput = () => { const value = advancedProjectileBoundaryDamageInput.valueAsNumber; if (Number.isFinite(value)) node.boundaryDamage = Math.max(0, Math.min(9999, value)); };
+    advancedProjectileHitSelfInput.onchange = () => { node.hitSelf = advancedProjectileHitSelfInput.checked; };
+    advancedProjectileSkipOnTouchInput.onchange = () => { node.skipOnTouch = advancedProjectileSkipOnTouchInput.checked; advancedProjectileSkipSettings.hidden = !node.sticks || !node.skipOnTouch; };
+    advancedProjectileCancelOnTouchInput.onchange = () => { node.cancelOnTouch = advancedProjectileCancelOnTouchInput.checked; };
+    advancedPiercingInput.onchange = () => { node.piercing = advancedPiercingInput.checked; advancedPiercingProperties.hidden = !node.piercing; };
+    advancedHitRateInput.oninput = () => { const value = advancedHitRateInput.valueAsNumber; if (Number.isFinite(value)) node.hitRate = Math.max(0, value); };
+    advancedDamageDeductionInput.oninput = () => { const value = advancedDamageDeductionInput.valueAsNumber; if (Number.isFinite(value)) node.damageDeduction = Math.max(0, value); };
+    advancedHomingEnabledInput.onchange = () => { node.homingEnabled = advancedHomingEnabledInput.checked; advancedHomingProperties.hidden = !node.homingEnabled; };
+    advancedHomingInput.oninput = () => { const value = advancedHomingInput.valueAsNumber; if (Number.isFinite(value)) node.homing = Math.max(0, Math.min(3600, value)); };
+    advancedDisableAllInput.onchange = () => { node.disableAll = advancedDisableAllInput.checked; };
+    advancedOrbitEnabledInput.onchange = () => { node.orbitEnabled = advancedOrbitEnabledInput.checked; advancedOrbitProperties.hidden = !node.orbitEnabled; };
+    advancedOrbitSpeedInput.oninput = () => { const value = advancedOrbitSpeedInput.valueAsNumber; if (Number.isFinite(value)) node.orbitSpeed = value; };
+    advancedOrbitAlignedInput.onchange = () => { node.orbitAligned = advancedOrbitAlignedInput.checked; };
+    advancedOrbitCounterClockwiseInput.onchange = () => { node.orbitCounterClockwise = advancedOrbitCounterClockwiseInput.checked; };
+    advancedOrbitTargetHitboxInput.onchange = () => { node.orbitTargetOfHitbox = advancedOrbitTargetHitboxInput.checked; advancedOrbitTargetPicker.hidden = !node.orbitTargetOfHitbox; if (node.orbitTargetOfHitbox) renderHitboxTargetPicker(advancedOrbitTargetPicker, node, 'orbitTargetNodeIds', false); };
+    advancedOrbitImmuneInput.onchange = () => { node.orbitImmune = advancedOrbitImmuneInput.checked; };
+    advancedOrbitDistanceInput.oninput = () => { const value = advancedOrbitDistanceInput.valueAsNumber; if (Number.isFinite(value)) node.orbitDistance = Math.max(0, value); };
+    advancedOrbitIndestructibleInput.onchange = () => {
+      node.orbitIndestructible = advancedOrbitIndestructibleInput.checked;
+      advancedOrbitIndestructibleOptions.hidden = !node.orbitIndestructible;
+    };
+    advancedOrbitPhaseThroughInput.onchange = () => { node.phaseThroughArena = advancedOrbitPhaseThroughInput.checked; };
+    advancedChangePropertyInput.onchange = () => { node.changeEnabled = advancedChangePropertyInput.checked; advancedChangeProperties.hidden = !node.changeEnabled; };
+    advancedChangeSizeInput.oninput = () => { const value = advancedChangeSizeInput.valueAsNumber; if (Number.isFinite(value)) node.changeSize = Math.max(0, value); };
+    advancedChangeSpeedInput.oninput = () => { const value = advancedChangeSpeedInput.valueAsNumber; if (Number.isFinite(value)) node.changeSpeed = Math.max(0, value); };
+    advancedChangeDamageInput.oninput = () => { const value = advancedChangeDamageInput.valueAsNumber; if (Number.isFinite(value)) node.changeDamage = value; };
+    advancedChangeTimeInput.oninput = () => { const value = advancedChangeTimeInput.valueAsNumber; if (Number.isFinite(value)) node.changeTime = Math.max(0, value); };
+    advancedChangeBouncesInput.oninput = () => { const value = advancedChangeBouncesInput.valueAsNumber; if (Number.isFinite(value)) node.changeBounces = Math.max(0, Math.floor(value)); };
+    advancedChangeImageInput.onchange = () => {
+      const file = advancedChangeImageInput.files?.[0];
+      if (!file) return;
+      if (node.changeImageURL) URL.revokeObjectURL(node.changeImageURL);
+      node.changeImageURL = URL.createObjectURL(file);
+      node.changeImageName = file.name;
+      advancedChangeImageName.textContent = file.name;
+      const image = new Image();
+      image.onload = () => { if (node.changeImageURL === image.src) { node.changeImage = image; node.changeImageBounds = getImageAlphaBounds(image); } };
+      image.src = node.changeImageURL;
+    };
     return;
   }
   if (node.type === 'variable') {
@@ -1421,11 +1891,10 @@ function selectTimelineNode(nodeId) {
       skipNodeTargetPicker.replaceChildren();
       skipNodeTargetPicker.hidden = !skipNodeTargetPicker.hidden;
       if (skipNodeTargetPicker.hidden) return;
-      const currentIndex = draftNodes.findIndex(item => item.id === node.id);
-      const candidates = draftNodes.filter((item, index) => index > currentIndex);
+      const candidates = draftNodes.filter(item => item.id !== node.id);
       if (!candidates.length) {
         const empty = document.createElement('span');
-        empty.textContent = 'Add a node after Skip to select it.';
+        empty.textContent = 'Add another node to select it.';
         skipNodeTargetPicker.append(empty);
       }
       for (const candidate of candidates) {
@@ -1490,7 +1959,7 @@ function selectTimelineNode(nodeId) {
     velocityDistanceInput.value = node.distance ?? 200;
     node.rotation = node.rotation ?? (categorySelect.value === 'guy-one' ? 90 : 270);
     updateVelocityRotationDial(node.rotation);
-    velocityRandomInput.checked = Boolean(node.random);
+      velocityRandomInput.checked = Boolean(node.random);
     velocityRotationSetting.hidden = Boolean(node.random || node.trackEnemy || node.trackOpposite);
     velocityTrackEnemySetting.hidden = Boolean(node.random);
     velocityTrackOppositeSetting.hidden = Boolean(node.random);
@@ -1543,8 +2012,8 @@ function selectTimelineNode(nodeId) {
     projectileSpawnAtIdInput.oninput = () => { node.spawnAtProjectileId = projectileSpawnAtIdInput.value; };
     projectileImageInput.value = '';
     projectileImageName.textContent = node.imageName || (node.image ? 'Bottle' : 'No image selected');
-    node.soundURL = node.soundURL || defaultHitboxSound;
-    node.soundName = node.soundName || defaultHitboxSoundName;
+    node.soundURL = node.soundURL ?? defaultHitboxSound;
+    node.soundName = node.soundName ?? defaultHitboxSoundName;
     projectileSoundInput.value = '';
     projectileSoundName.textContent = node.soundName;
     projectileDamageInput.value = node.damage ?? 10;
@@ -1553,7 +2022,7 @@ function selectTimelineNode(nodeId) {
     projectileBounceCountInput.value = node.bounceCount ?? 0;
     projectileRotateSpeedInput.value = node.rotateSpeed ?? 0;
     updateProjectileRotationDial(node.rotation ?? (categorySelect.value === 'guy-one' ? 90 : 270));
-    projectileRotateToDirectionInput.checked = node.rotateToDirection ?? true;
+    projectileRotateToDirectionInput.checked = node.rotateToDirection ?? false;
     projectileSizeInput.value = node.size ?? 1;
     projectileEndSizeInput.value = node.endSize ?? 1;
     projectileTracksInput.checked = node.tracks ?? true;
@@ -1601,14 +2070,15 @@ function selectTimelineNode(nodeId) {
     node.rotation = node.rotation ?? (categorySelect.value === 'guy-one' ? 90 : 270);
     projectileSizeInput.oninput = () => {
       const value = projectileSizeInput.valueAsNumber;
-      if (Number.isFinite(value)) node.size = Math.max(0.1, Math.min(10, value));
+      if (Number.isFinite(value)) node.size = Math.max(0, Math.min(10, value));
     };
     projectileEndSizeInput.oninput = () => {
       const value = projectileEndSizeInput.valueAsNumber;
-      if (Number.isFinite(value)) node.endSize = Math.max(0.1, Math.min(10, value));
+      if (Number.isFinite(value)) node.endSize = Math.max(0, Math.min(10, value));
     };
     projectileTracksInput.onchange = updateProjectileTrackingProperties;
     projectileRotateToDirectionInput.onchange = () => { node.rotateToDirection = projectileRotateToDirectionInput.checked; };
+    projectileStacksInput.onchange = () => { node.stacks = projectileStacksInput.checked; };
     projectilePiercingInput.onchange = updateProjectilePiercingProperties;
     projectileHitRateInput.oninput = () => {
       const value = projectileHitRateInput.valueAsNumber;
@@ -1691,8 +2161,10 @@ function selectTimelineNode(nodeId) {
     visualSpeedInput.value = node.speed ?? 0;
     visualTowardsEnemyInput.checked = Boolean(node.towardsEnemy);
     visualRotateTowardsEnemyInput.checked = Boolean(node.rotateTowardsEnemy);
-    visualOpacityInput.value = node.opacity ?? (node.visualType === 'Flash' || !node.visualType ? 50 : 100);
-    visualOpacityInput.max = node.visualType === 'Flash' || !node.visualType ? '200' : '100';
+    const defaultOpacity = node.visualType === 'Flash' || !node.visualType ? 50 : 100;
+    if (!(typeof node.opacity === 'string' && node.opacity.startsWith('$'))) node.opacity = Math.max(0, Math.min(100, Number(node.opacity ?? defaultOpacity)));
+    visualOpacityInput.value = node.opacity ?? defaultOpacity;
+    visualOpacityInput.max = '100';
     visualMaskInput.checked = Boolean(node.mask);
     visualTargetOfHitboxInput.checked = Boolean(node.targetOfHitbox);
     visualTargetPicker.hidden = !node.targetOfHitbox;
@@ -1702,7 +2174,7 @@ function selectTimelineNode(nodeId) {
     updateVisualPreview(node);
     visualNodeTypeInput.onchange = () => {
       node.visualType = visualNodeTypeInput.value || 'Flash';
-      visualOpacityInput.max = node.visualType === 'Flash' ? '200' : '100';
+      visualOpacityInput.max = '100';
       const imageVisual = ['Image', 'Attached Image'].includes(node.visualType);
       const overlay = node.visualType === 'Overlay';
       const spriteReplace = node.visualType === 'Sprite Replace';
@@ -1764,7 +2236,7 @@ function selectTimelineNode(nodeId) {
     visualOpacityInput.oninput = () => {
       const opacity = visualOpacityInput.valueAsNumber;
       if (Number.isFinite(opacity)) {
-        node.opacity = Math.max(0, Math.min(node.visualType === 'Flash' ? 200 : 100, opacity));
+        node.opacity = Math.max(0, Math.min(100, opacity));
         visualOpacityInput.value = node.opacity;
         updateVisualPreview(node);
       }
@@ -1826,7 +2298,7 @@ function selectTimelineNode(nodeId) {
   hitboxPositionXInput.value = node.x;
   hitboxPositionYInput.value = node.y;
   hitboxSoundInput.value = '';
-  hitboxSoundName.textContent = node.soundName || defaultHitboxSoundName;
+  hitboxSoundName.textContent = node.soundName ?? defaultHitboxSoundName;
   hitboxDamageInput.oninput = () => {
     const raw = hitboxDamageInput.value.trim();
     node.damage = raw.startsWith('$') ? raw : (Number.isFinite(Number(raw)) ? Number(raw) : 0);
@@ -2087,7 +2559,7 @@ projectileRotationInput.addEventListener('input', () => {
 
 function addHitboxNode() {
   const size = getSelectedGuySquare().size;
-  draftNodes.push({ id: nextNodeId++, type: 'hitbox', damage: 10, time: 0.05, shape: 'Square', anchored: false, hitSelf: false, x: 0, y: 0, rotation: 0, width: size, height: size, soundURL: defaultHitboxSound, soundName: defaultHitboxSoundName });
+  draftNodes.push({ id: nextNodeId++, type: 'hitbox', damage: 10, time: 0.05, shape: 'Square', anchored: false, hitSelf: false, x: 0, y: 0, rotation: 0, width: size, height: size, ...getDefaultSoundProperties() });
   selectedNodeId = null;
   hitboxNodeDetails.hidden = true;
   projectileNodeDetails.hidden = true;
@@ -2100,6 +2572,9 @@ function addHitboxNode() {
   variableNodeDetails.hidden = true;
   stateNodeDetails.hidden = true;
   randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   renderTimeline();
 }
 
@@ -2117,6 +2592,8 @@ projectileNodeButton.addEventListener('click', () => {
     bounceCount: 0,
     rotateSpeed: 90,
     rotation: categorySelect.value === 'guy-one' ? 90 : 270,
+    rotateToDirection: false,
+    stacks: false,
     size: 1,
     endSize: 1,
     tracks: true,
@@ -2126,8 +2603,7 @@ projectileNodeButton.addEventListener('click', () => {
     angleOffset: 0,
     homing: 0,
     falloff: 0,
-    soundURL: defaultHitboxSound,
-    soundName: defaultHitboxSoundName,
+    ...getDefaultSoundProperties(),
     image: defaultProjectileImage,
     imageBounds: defaultProjectileImageBounds,
     imageName: 'Bottle',
@@ -2144,6 +2620,9 @@ projectileNodeButton.addEventListener('click', () => {
   variableNodeDetails.hidden = true;
   stateNodeDetails.hidden = true;
   randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   renderTimeline();
 });
 velocityNodeButton.addEventListener('click', () => {
@@ -2172,10 +2651,13 @@ velocityNodeButton.addEventListener('click', () => {
   variableNodeDetails.hidden = true;
   stateNodeDetails.hidden = true;
   randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   renderTimeline();
 });
 soundNodeButton.addEventListener('click', () => {
-  draftNodes.push({ id: nextNodeId++, type: 'sound', soundURL: defaultHitboxSound, soundName: defaultHitboxSoundName, volume: 100, start: 0, fade: false, stack: false, cancel: false });
+  draftNodes.push({ id: nextNodeId++, type: 'sound', ...getDefaultSoundProperties(), volume: 100, start: 0, fade: false, stack: false, cancel: false });
   selectedNodeId = null;
   hitboxNodeDetails.hidden = true;
   projectileNodeDetails.hidden = true;
@@ -2188,20 +2670,53 @@ soundNodeButton.addEventListener('click', () => {
   variableNodeDetails.hidden = true;
   stateNodeDetails.hidden = true;
   randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   renderTimeline();
 });
 stateNodeButton.addEventListener('click', () => {
   draftNodes.push({ id: nextNodeId++, type: 'state', stateType: 'IFrames', value: '1', time: 1, targetOfHitbox: false, targetNodeIds: [] });
   selectedNodeId = null;
   hitboxNodeDetails.hidden = true; projectileNodeDetails.hidden = true; soundNodeDetails.hidden = true; waitNodeDetails.hidden = true; visualNodeDetails.hidden = true; velocityNodeDetails.hidden = true; cancelNodeDetails.hidden = true; skipNodeDetails.hidden = true; variableNodeDetails.hidden = true; stateNodeDetails.hidden = true; randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   renderTimeline();
 });
 randomSkipNodeButton.addEventListener('click', () => {
   draftNodes.push({ id: nextNodeId++, type: 'random-skip', destinations: [], stackNodes: false });
   selectedNodeId = null;
   hitboxNodeDetails.hidden = true; projectileNodeDetails.hidden = true; soundNodeDetails.hidden = true; waitNodeDetails.hidden = true; visualNodeDetails.hidden = true; velocityNodeDetails.hidden = true; cancelNodeDetails.hidden = true; skipNodeDetails.hidden = true; variableNodeDetails.hidden = true; stateNodeDetails.hidden = true; randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   renderTimeline();
 });
+advancedProjectileNodeButton.addEventListener('click', () => {
+  draftNodes.push({
+    id: nextNodeId++, type: 'advanced-projectile', behavior: 'All', projectileId: '',
+    sticks: false, boundaries: false, enemy: false, bounceDamage: 10,
+    hitSelf: false, skipOnTouch: false, skipNodeId: null, phaseThroughArena: false,
+  });
+  selectedNodeId = null;
+  hitboxNodeDetails.hidden = true;
+  projectileNodeDetails.hidden = true;
+  soundNodeDetails.hidden = true;
+  waitNodeDetails.hidden = true;
+  visualNodeDetails.hidden = true;
+  velocityNodeDetails.hidden = true;
+  cancelNodeDetails.hidden = true;
+  skipNodeDetails.hidden = true;
+  variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
+  renderTimeline();
+});
+
 variableNodeButton.addEventListener('click', () => {
   draftNodes.push({ id: nextNodeId++, type: 'variable', variable: '', value: '', math: false, remove: false, targetOfHitbox: false, targetNodeIds: [] });
   selectedNodeId = null;
@@ -2215,6 +2730,9 @@ variableNodeButton.addEventListener('click', () => {
   variableNodeDetails.hidden = true;
   stateNodeDetails.hidden = true;
   randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   renderTimeline();
 });
 skipNodeButton.addEventListener('click', () => {
@@ -2231,6 +2749,29 @@ skipNodeButton.addEventListener('click', () => {
   variableNodeDetails.hidden = true;
   stateNodeDetails.hidden = true;
   randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
+  renderTimeline();
+});
+
+commentNodeButton.addEventListener('click', () => {
+  draftNodes.push({ id: nextNodeId++, type: 'comment', text: 'Comment' });
+  selectedNodeId = null;
+  hitboxNodeDetails.hidden = true;
+  projectileNodeDetails.hidden = true;
+  soundNodeDetails.hidden = true;
+  waitNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
+  visualNodeDetails.hidden = true;
+  velocityNodeDetails.hidden = true;
+  cancelNodeDetails.hidden = true;
+  skipNodeDetails.hidden = true;
+  variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
   renderTimeline();
 });
 
@@ -2248,8 +2789,31 @@ cancelNodeButton.addEventListener('click', () => {
   variableNodeDetails.hidden = true;
   stateNodeDetails.hidden = true;
   randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   renderTimeline();
 });
+loopNodeButton.addEventListener('click', () => {
+  draftNodes.push({ id: nextNodeId++, type: 'loop', loopStartNodeId: null, loopAmount: 1 });
+  selectedNodeId = null;
+  hitboxNodeDetails.hidden = true;
+  projectileNodeDetails.hidden = true;
+  soundNodeDetails.hidden = true;
+  waitNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
+  visualNodeDetails.hidden = true;
+  velocityNodeDetails.hidden = true;
+  cancelNodeDetails.hidden = true;
+  skipNodeDetails.hidden = true;
+  variableNodeDetails.hidden = true;
+  stateNodeDetails.hidden = true;
+  randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  renderTimeline();
+});
+
 waitNodeButton.addEventListener('click', () => {
   draftNodes.push({ id: nextNodeId++, type: 'wait', time: 1, afterHitLanded: false, afterHitNodeIds: [] });
   selectedNodeId = null;
@@ -2264,6 +2828,9 @@ waitNodeButton.addEventListener('click', () => {
   variableNodeDetails.hidden = true;
   stateNodeDetails.hidden = true;
   randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   renderTimeline();
 });
 visualNodeButton.addEventListener('click', () => {
@@ -2280,6 +2847,9 @@ visualNodeButton.addEventListener('click', () => {
   variableNodeDetails.hidden = true;
   stateNodeDetails.hidden = true;
   randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   renderTimeline();
 });
 categorySelect.addEventListener('change', updateHitboxPreview);
@@ -2348,6 +2918,9 @@ async function exportSelectedGuy() {
       const node = { ...sourceNode };
       if (node.image) node.image = await imageToDataUrl(node.image);
       delete node.imageBounds;
+      if (node.changeImage) node.changeImage = typeof node.changeImage === 'string' ? node.changeImage : await imageToDataUrl(node.changeImage);
+      delete node.changeImageURL;
+      delete node.changeImageBounds;
       if (node.soundURL) node.soundURL = await assetToDataUrl(node.soundURL);
       return node;
     })),
@@ -2435,10 +3008,15 @@ async function importSelectedGuy(file) {
       const node = { ...sourceNode, id: nodeIds.get(sourceNode.id) ?? nextNodeId++ };
       for (const field of ['targetNodeIds', 'afterHitNodeIds']) node[field] = (node[field] ?? []).map(id => nodeIds.get(id) ?? id);
       if (node.skipNodeId != null) node.skipNodeId = nodeIds.get(node.skipNodeId) ?? null;
+      if (node.loopStartNodeId != null) node.loopStartNodeId = nodeIds.get(node.loopStartNodeId) ?? null;
       if (node.destinations) node.destinations = node.destinations.map(destination => ({ ...destination, nodeId: nodeIds.get(destination.nodeId) ?? null }));
       if (typeof node.image === 'string') {
         node.image = await imageFromDataUrl(node.image);
         node.imageBounds = node.image?.imageBounds ?? null;
+      }
+      if (typeof node.changeImage === 'string') {
+        node.changeImage = await imageFromDataUrl(node.changeImage);
+        node.changeImageBounds = node.changeImage?.imageBounds ?? null;
       }
       return node;
     })),
@@ -2504,6 +3082,7 @@ function renderMoves() {
           targetNodeIds: node.targetNodeIds?.map(id => nodeIds.get(id) ?? id),
           afterHitNodeIds: node.afterHitNodeIds?.map(id => nodeIds.get(id) ?? id),
           skipNodeId: node.skipNodeId == null ? null : (nodeIds.get(node.skipNodeId) ?? null),
+          loopStartNodeId: node.loopStartNodeId == null ? null : (nodeIds.get(node.loopStartNodeId) ?? null),
           destinations: node.destinations?.map(destination => ({ ...destination, nodeId: nodeIds.get(destination.nodeId) ?? null })),
         };
         return duplicate;
@@ -2568,13 +3147,16 @@ function applyMoveToEditor(move) {
   variableNodeDetails.hidden = true;
   stateNodeDetails.hidden = true;
   randomSkipNodeDetails.hidden = true;
+  advancedProjectileNodeDetails.hidden = true;
+  loopNodeDetails.hidden = true;
+  commentNodeDetails.hidden = true;
   updateMoveCondition();
 }
 
 function openMoveEditor(move = null, returnFocus = addMoveButton) {
   editingMoveId = move?.id ?? null;
   moveReturnFocus = returnFocus;
-  draftNodes = (move?.nodes ?? []).map(node => ({ ...node }));
+  draftNodes = (move?.nodes ?? []).map(cloneMoveNode);
   undoSnapshots = [];
   previousUndoSnapshot = draftFingerprint();
   selectedNodeId = null;
@@ -2586,17 +3168,17 @@ function openMoveEditor(move = null, returnFocus = addMoveButton) {
   closeMoveModalButton.focus();
 }
 
-function closeMoveModal() {
-  moveModal.hidden = true;
-  moveReturnFocus?.focus();
+function cloneMoveNode(node) {
+  return {
+    ...node,
+    targetNodeIds: node.targetNodeIds ? [...node.targetNodeIds] : undefined,
+    afterHitNodeIds: node.afterHitNodeIds ? [...node.afterHitNodeIds] : undefined,
+    destinations: node.destinations?.map(destination => ({ ...destination })),
+    config: node.config ? { ...node.config, orbit: node.config.orbit ? { ...node.config.orbit } : undefined } : undefined,
+  };
 }
 
-addMoveButton.addEventListener('click', () => {
-  openMoveEditor();
-});
-
-closeMoveModalButton.addEventListener('click', closeMoveModal);
-finishMoveButton.addEventListener('click', () => {
+function saveDraftMove() {
   const moves = movesByGuy[categorySelect.value];
   const existingMove = moves.find(move => move.id === editingMoveId);
   const moveData = {
@@ -2611,16 +3193,30 @@ finishMoveButton.addEventListener('click', () => {
     directionFrequency: directionFrequencySelect.value,
     delay: Number(metronomeDelayInput.value) || 0,
     interval: Number(metronomeIntervalInput.value) || 1,
-    nodes: draftNodes.map(node => ({ ...node })),
+    nodes: draftNodes.map(cloneMoveNode),
   };
-
-  if (existingMove) {
-    Object.assign(existingMove, moveData);
-  } else {
-    moves.push(moveData);
-  }
+  if (existingMove) Object.assign(existingMove, moveData);
+  else moves.push(moveData);
+  editingMoveId = moveData.id;
   renderMoves();
-  closeMoveModal();
+}
+
+function closeMoveModal(save = moveUiSettings.alwaysSaveMoves) {
+  if (save) saveDraftMove();
+  moveSettingsPanel.hidden = true;
+  moveSettingsButton.setAttribute('aria-expanded', 'false');
+  moveModal.hidden = true;
+  moveReturnFocus?.focus();
+}
+
+addMoveButton.addEventListener('click', () => {
+  openMoveEditor();
+});
+
+closeMoveModalButton.addEventListener('click', () => closeMoveModal());
+finishMoveButton.addEventListener('click', () => {
+  saveDraftMove();
+  closeMoveModal(false);
 });
 
 moveNodeUpButton.addEventListener('click', () => moveSelectedNode(-1));
@@ -2783,6 +3379,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
   const pendingHitResolutions = branchActorIndex === null ? [] : [Promise.resolve(branchActorIndex)];
   let stackedRandomSkipTargets = [];
   let runJumpDestinationNext = false;
+  let skipJumpCount = 0;
   const hitResolutionByNode = new Map();
   const hitDirectionByNode = new Map();
   let lastHitDirectionResolution = Promise.resolve(null);
@@ -2793,6 +3390,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
     return results.every(result => result !== null) ? results.at(-1) : null;
   };
   for (const id of seededHitNodeIds) hitResolutionByNode.set(Number(id), Promise.resolve(branchActorIndex));
+  const loopRepeatsRemaining = new Map();
   const forkTargetTimelines = async (node, startIndexes) => {
     if (!allowTargetBranches || branchActorIndex !== null || !startIndexes.length) return false;
     const hitIndexes = node.targetNodeIds?.length
@@ -2927,7 +3525,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       let targetBranchStartIndexes = [];
       if (node.type === 'skip') {
         destinationIndex = nodes.findIndex(item => item.id === node.skipNodeId);
-        if (destinationIndex > nodeIndex) targetBranchStartIndexes = [destinationIndex];
+        if (destinationIndex >= 0 && destinationIndex !== nodeIndex) targetBranchStartIndexes = [destinationIndex];
       } else {
         const passedTargets = [];
         for (const destination of node.destinations ?? []) {
@@ -2935,7 +3533,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
           const chance = Math.max(0, Math.min(100, Number(destination.chance) || 0));
           if (Math.random() * 100 >= chance) continue;
           const targetIndex = nodes.findIndex(item => item.id === destination.nodeId);
-          if (targetIndex <= nodeIndex) continue;
+          if (targetIndex < 0 || targetIndex === nodeIndex) continue;
           if (node.stackNodes) passedTargets.push(targetIndex);
           else { destinationIndex = targetIndex; break; }
         }
@@ -2943,11 +3541,12 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
           targetBranchStartIndexes = [...new Set(passedTargets)].sort((a, b) => a - b);
           stackedRandomSkipTargets = [...targetBranchStartIndexes];
           destinationIndex = stackedRandomSkipTargets.shift();
-        } else if (destinationIndex > nodeIndex) {
+        } else if (destinationIndex >= 0 && destinationIndex !== nodeIndex) {
           targetBranchStartIndexes = [destinationIndex];
         }
       }
-      if (destinationIndex <= nodeIndex) continue;
+      if (destinationIndex < 0 || destinationIndex === nodeIndex) continue;
+      if (++skipJumpCount > 1000) return;
       if (node.targetOfHitbox && allowTargetBranches) {
         await transferTargetTimelines(node, targetBranchStartIndexes);
         nodeIndex = Math.max(destinationIndex, ...targetBranchStartIndexes);
@@ -2956,6 +3555,20 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       } else {
         nodeIndex = destinationIndex - 1;
         runJumpDestinationNext = true;
+      }
+      continue;
+    }
+    if (node.type === 'loop') {
+      const startIndex = nodes.findIndex(item => item.id === node.loopStartNodeId);
+      const amount = Math.max(0, Math.min(1000, Math.floor(Number(node.loopAmount) || 0)));
+      const repeatsUsed = loopRepeatsRemaining.get(node.id) ?? 0;
+      if (startIndex >= 0 && startIndex < nodeIndex && repeatsUsed < amount) {
+        if (++skipJumpCount > 1000) return;
+        loopRepeatsRemaining.set(node.id, repeatsUsed + 1);
+        nodeIndex = startIndex - 1;
+        runJumpDestinationNext = true;
+      } else {
+        loopRepeatsRemaining.delete(node.id);
       }
       continue;
     }
@@ -3086,7 +3699,7 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
             speed: Math.max(0, Number(node.speed) || 0),
             towardsEnemy: Boolean(node.towardsEnemy),
             rotateTowardsEnemy: Boolean(node.rotateTowardsEnemy),
-            opacity: Math.max(0, Math.min(visualType === 'Flash' ? 200 : 100, Number.isFinite(Number(node.opacity)) ? Number(node.opacity) : visualType === 'Flash' ? 50 : 100)) / 100,
+            opacity: Math.max(0, Math.min(100, Number.isFinite(Number(node.opacity)) ? Number(node.opacity) : visualType === 'Flash' ? 50 : 100)) / 100,
             mask: Boolean(node.mask),
             travelX: 0,
             travelY: 0,
@@ -3103,6 +3716,82 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       launchVisual(attackerIndex);
       continue;
     }
+    if (node.type === 'advanced-projectile') {
+      const behavior = node.behavior ?? 'All';
+      const projectileIdKey = getProjectileIdKey(attackerIndex, preview, node.projectileId);
+      const matchingProjectiles = behavior !== 'New' && projectileIdKey
+        ? activeProjectiles.filter(projectile => projectile.idKey === projectileIdKey)
+        : [];
+      const advanced = {
+        sticks: Boolean(node.sticks), boundaries: Boolean(node.boundaries), enemy: Boolean(node.enemy),
+        bounceDamage: node.bounceDamage, boundaryDamage: node.boundaryDamage, hitSelf: Boolean(node.hitSelf),
+        skipOnTouch: Boolean(node.skipOnTouch), cancelOnTouch: Boolean(node.cancelOnTouch),
+        piercing: Boolean(node.piercing), hitRate: node.hitRate, damageDeduction: node.damageDeduction,
+        homingEnabled: Boolean(node.homingEnabled), homing: node.homing, disableAll: Boolean(node.disableAll),
+        changeEnabled: Boolean(node.changeEnabled), changeSize: node.changeSize, changeSpeed: node.changeSpeed,
+        changeDamage: node.changeDamage, changeImage: node.changeImage, changeImageBounds: node.changeImageBounds,
+        changeTime: node.changeTime, changeBounces: node.changeBounces,
+        orbit: {
+          enabled: Boolean(node.orbitEnabled), aligned: Boolean(node.orbitAligned),
+          counterClockwise: Boolean(node.orbitCounterClockwise), immune: Boolean(node.orbitImmune),
+          distance: node.orbitDistance, speed: node.orbitSpeed, indestructible: Boolean(node.orbitIndestructible),
+          phaseThroughArena: Boolean(node.phaseThroughArena),
+        },
+      };
+      if (advanced.orbit.enabled && node.orbitTargetOfHitbox) {
+        const orbitTargetNodeIds = Array.isArray(node.orbitTargetNodeIds) ? node.orbitTargetNodeIds : node.orbitTargetNodeIds == null ? [] : [node.orbitTargetNodeIds];
+        const hitIndex = orbitTargetNodeIds.length
+          ? await waitForSelectedHits(orbitTargetNodeIds)
+          : await lastHitResolution;
+        if (hitIndex === null || moveWasStopped()) continue;
+        advanced.orbit.centerIndex = hitIndex;
+      } else advanced.orbit.centerIndex = attackerIndex;
+      if (behavior !== 'Old' && projectileIdKey) advancedProjectilePropertiesById.set(projectileIdKey, advanced);
+      for (const projectile of matchingProjectiles) applyAdvancedProjectileConfiguration(projectile, advanced);
+      const canStick = Boolean(node.sticks && (node.boundaries || node.enemy));
+      const destinationIndex = nodes.findIndex(item => item.id === node.skipNodeId);
+      const waitForTouch = Boolean(canStick && node.skipOnTouch && destinationIndex >= 0 && destinationIndex !== nodeIndex && matchingProjectiles.length);
+      let resolveTouch;
+      const waitingProjectiles = new Set();
+      const touchResolvers = new Map();
+      const touchPromise = waitForTouch ? new Promise(resolve => { resolveTouch = resolve; }) : null;
+      const signalTouch = (projectile, touched) => {
+        if (!waitingProjectiles.has(projectile)) return;
+        if (touched) {
+          waitingProjectiles.clear();
+          resolveTouch(true);
+        } else {
+          waitingProjectiles.delete(projectile);
+          if (!waitingProjectiles.size) resolveTouch(false);
+        }
+      };
+      for (const projectile of matchingProjectiles) {
+        projectile.sticksToBoundaries = Boolean(canStick && node.boundaries);
+        projectile.sticksToEnemy = Boolean(canStick && node.enemy);
+        projectile.hitSelfWhenStuck = Boolean(canStick && node.hitSelf);
+        projectile.bounceDamage = node.enemy ? Math.max(0, Number(node.bounceDamage) || 0) : 0;
+        if (waitForTouch) {
+          waitingProjectiles.add(projectile);
+          const resolveProjectileTouch = touched => signalTouch(projectile, touched);
+          projectile.skipOnTouchResolvers.add(resolveProjectileTouch);
+          touchResolvers.set(projectile, resolveProjectileTouch);
+        }
+      }
+      if (waitingProjectiles.size) {
+        const touched = preview
+          ? await Promise.race([touchPromise, previewState.cancelledPromise.then(() => false)])
+          : await touchPromise;
+        for (const [projectile, resolveProjectileTouch] of touchResolvers) {
+          projectile.skipOnTouchResolvers.delete(resolveProjectileTouch);
+        }
+        if (touched && !moveWasStopped()) {
+          if (++skipJumpCount > 1000) return;
+          nodeIndex = destinationIndex - 1;
+          runJumpDestinationNext = true;
+        }
+      }
+      continue;
+    }
     if (node.type === 'projectile') {
       const rotation = Number.isFinite(Number(node.rotation))
         ? (Number(node.rotation) - 90) * Math.PI / 180
@@ -3113,6 +3802,8 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
       const speed = Math.max(1, Math.min(2000, Number(node.speed) || 420));
       const configuredDuration = Number(node.time);
       const duration = Math.max(0.05, Math.min(60, Number.isFinite(configuredDuration) ? configuredDuration : 4));
+      const sizeMultiplier = Math.max(0, Math.min(10, Number.isFinite(Number(node.size)) ? Number(node.size) : 1));
+      if (sizeMultiplier <= 0) continue;
       const projectileId = String(node.projectileId ?? '').trim();
       const projectileIdKey = getProjectileIdKey(attackerIndex, preview, projectileId);
       const cancelIdKey = getProjectileIdKey(attackerIndex, preview, node.cancelProjectileId);
@@ -3135,8 +3826,10 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
         ? Math.atan2(target.y - startY, target.x - startX) + randomAngleOffset
         : rotation;
       if (projectileIdKey) {
-        const replaced = activeProjectiles.find(item => item.idKey === projectileIdKey);
-        if (replaced) {
+        const sameIdProjectiles = activeProjectiles.filter(item => item.idKey === projectileIdKey);
+        const existingLimit = node.stacks ? 1 : 0;
+        while (sameIdProjectiles.length > existingLimit) {
+          const replaced = sameIdProjectiles.shift();
           removeProjectileFromPlay(replaced);
           replaced.cancelled = true;
           replaced.complete?.(false);
@@ -3148,27 +3841,54 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
         targetDirection: null,
         idKey: projectileIdKey,
         attackerIndex,
+        spawnedByIndex: attackerIndex,
         targetIndex,
         damage: Math.max(0, Number(node.damage) || 0),
+        defaultDamage: Math.max(0, Number(node.damage) || 0),
         speed,
-        baseSize: 75 * Math.max(0.1, Math.min(10, Number(node.size) || 1)),
-        endSizeMultiplier: Math.max(0.1, Math.min(10, Number(node.endSize) || 1)),
-        radius: 75 * Math.max(0.1, Math.min(10, Number(node.size) || 1)) / 2,
+        defaultSpeed: speed,
+        defaultDirection: direction,
+        heading: direction,
+        baseSize: 75 * sizeMultiplier,
+        defaultBaseSize: 75 * sizeMultiplier,
+        endSizeMultiplier: Math.max(0, Math.min(10, Number.isFinite(Number(node.endSize)) ? Number(node.endSize) : 1)),
+        defaultEndSizeMultiplier: Math.max(0, Math.min(10, Number.isFinite(Number(node.endSize)) ? Number(node.endSize) : 1)),
+        radius: 75 * sizeMultiplier / 2,
         image: node.image || null,
+        defaultImage: node.image || null,
         imageBounds: node.imageBounds || (node.image?.complete && node.image.naturalWidth ? getImageAlphaBounds(node.image) : null),
-        soundURL: node.soundURL || defaultHitboxSound,
+        defaultImageBounds: node.imageBounds || (node.image?.complete && node.image.naturalWidth ? getImageAlphaBounds(node.image) : null),
+        soundURL: node.soundURL ?? defaultHitboxSound,
         bouncesRemaining: Math.max(0, Math.min(99, Math.floor(Number(node.bounceCount) || 0))),
+        defaultBounces: Math.max(0, Math.min(99, Math.floor(Number(node.bounceCount) || 0))),
+        sticksToBoundaries: false,
+        sticksToEnemy: false,
+        hitSelfWhenStuck: false,
+        bounceDamage: 0,
+        stuckTo: null,
+        stuckTargetIndex: null,
+        stuckOffsetX: 0,
+        stuckOffsetY: 0,
+        skipOnTouchResolvers: new Set(),
+        ownerLastHitAt: null,
         rotation: 0,
         rotateSpeed: Math.max(-3600, Math.min(3600, Number(node.rotateSpeed) || 0)),
         tracks: Boolean(node.tracks ?? true),
-        rotateToDirection: Boolean(node.rotateToDirection ?? true),
+        rotateToDirection: Boolean(node.rotateToDirection ?? false),
         homing: Math.max(0, Math.min(3600, Number(node.homing) || 0)),
         falloff: Math.max(0, Number(node.falloff) || 0),
         piercing: Boolean(node.piercing),
+        originalPiercing: Boolean(node.piercing),
         hitRate: Math.max(0, Number(node.hitRate ?? 1) || 0),
         damageDeduction: Math.max(0, Number(node.damageDeduction) || 0),
         lastHitAt: null,
         nextFalloffAt: simulationTime + 0.05,
+        defaultDuration: duration,
+        boundaryDamage: 0,
+        boundaryInside: [false, false],
+        cancelOnTouch: false,
+        orbitAngle: null,
+        immuneIndex: null,
         x: startX,
         y: startY,
         vx: Math.cos(direction) * speed,
@@ -3178,6 +3898,8 @@ async function executeMoveTimeline(attackerIndex, move, preview = false, preview
         expiresAt: simulationTime + duration,
         preview,
       };
+      const advanced = projectileIdKey ? advancedProjectilePropertiesById.get(projectileIdKey) : null;
+      if (advanced && !applyAdvancedProjectileConfiguration(projectile, advanced)) continue;
       rememberProjectilePosition(projectile);
       if (preview && projectile.piercing) previewMoveEndTime = Math.max(previewMoveEndTime, projectile.expiresAt);
       const resolvedTargetIndex = targetIndex;
@@ -3339,6 +4061,12 @@ async function previewDraftMove() {
       await new Promise(resolve => requestAnimationFrame(resolve));
     }
   } finally {
+    for (const projectile of [...activeProjectiles]) {
+      if (previewState.projectiles.has(projectile)) continue;
+      removeProjectileFromPlay(projectile);
+      projectile.cancelled = true;
+      projectile.complete?.(false);
+    }
     clearPreviewProjectilePositions();
     isPreviewingMove = false;
     squares.forEach((square, index) => {
@@ -3549,6 +4277,7 @@ function getOpponentSide(guyIndex) {
 
 function resetMoveTimers() {
   directionSideByMove = new WeakMap();
+  directionCheckElapsed = 0;
   for (const runningMoves of Object.values(activeMoveTimelines)) runningMoves.clear();
   for (const moves of Object.values(movesByGuy)) {
     for (const move of moves) {
@@ -3585,30 +4314,36 @@ function startMatchMoves() {
   }
 }
 
-function advanceDirectionMoves() {
+let directionCheckElapsed = 0;
+function advanceDirectionMoves(dt) {
   if (matchEnded) return;
-  for (let guyIndex = 0; guyIndex < squares.length; guyIndex++) {
-    if (squares[guyIndex].health <= 0) continue;
-    const guy = squares[guyIndex];
-    const opponent = squares[1 - guyIndex];
-    const side = getOpponentSide(guyIndex);
-    for (const move of movesByGuy[getGuyId(guyIndex)]) {
-      if (move.condition !== 'direction') continue;
-      const selectedSides = move.directionSides ?? [];
-      const previousMatch = directionSideByMove.get(move);
-      const isAreaMode = (move.directionMode ?? 'side') === 'area';
-      const matches = isAreaMode
-        ? selectedSides.some(selectedSide =>
-          selectedSide === 'left' ? opponent.x < guy.x
-            : selectedSide === 'right' ? opponent.x > guy.x
-              : selectedSide === 'up' ? opponent.y < guy.y
-                : selectedSide === 'down' ? opponent.y > guy.y
-                  : false)
-        : selectedSides.includes(side);
-      directionSideByMove.set(move, isAreaMode ? matches : side);
-      if (matches && (move.directionFrequency === 'constantly' ||
-          (isAreaMode ? previousMatch !== true : side !== previousMatch))) {
-        runMoveTimeline(guyIndex, move);
+  directionCheckElapsed += dt;
+  while (directionCheckElapsed >= 0.01) {
+    directionCheckElapsed -= 0.01;
+    for (let guyIndex = 0; guyIndex < squares.length; guyIndex++) {
+      if (squares[guyIndex].health <= 0) continue;
+      const guy = squares[guyIndex];
+      const opponent = squares[1 - guyIndex];
+      for (const move of movesByGuy[getGuyId(guyIndex)]) {
+        if (move.condition !== 'direction') continue;
+        const selectedSides = move.directionSides ?? [];
+        const previousMatch = directionSideByMove.get(move);
+        const isAreaMode = (move.directionMode ?? 'side') === 'area';
+        const matches = selectedSides.some(selectedSide => {
+          const horizontal = selectedSide === 'left' || selectedSide === 'right';
+          const delta = horizontal ? opponent.x - guy.x : opponent.y - guy.y;
+          const crossDelta = horizontal ? opponent.y - guy.y : opponent.x - guy.x;
+          const sign = selectedSide === 'left' || selectedSide === 'up' ? -1 : 1;
+          const edgeDistance = (guy.size + opponent.size) / 2;
+          if (isAreaMode) return delta * sign >= edgeDistance;
+          return delta * sign >= edgeDistance && delta * sign <= edgeDistance + guy.size && Math.abs(crossDelta) <= edgeDistance;
+        });
+        directionSideByMove.set(move, matches);
+        const constantly = move.directionFrequency === 'constantly';
+        const runningCount = activeMoveTimelines[getGuyId(guyIndex)].get(move.id) ?? 0;
+        if (matches && (constantly ? runningCount === 0 : previousMatch !== true)) {
+          runMoveTimeline(guyIndex, move);
+        }
       }
     }
   }
@@ -3659,6 +4394,7 @@ function resize() {
   canvas.height = Math.round(height * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   updateHitboxPreview();
+  updateVisualPreview();
   if (width > 0 && height > 0 && (!positioned || (!isRunning && (needsStartMotion || isArenaResizeMode)))) {
     positionSquaresAtStart();
     positioned = true;
@@ -3780,13 +4516,6 @@ function hitboxPolygonsOverlap(first, second) {
   return true;
 }
 
-function getFamiliarShapeSize(width, height) {
-  const ratio = familiarMaskWidth / familiarMaskHeight;
-  return width / height > ratio
-    ? { width: height * ratio, height }
-    : { width, height: width / ratio };
-}
-
 function hitboxShapeOverlapsTarget(shape, centerX, centerY, rotation, width, height, left, top, targetWidth, targetHeight) {
   if (shape === 'Square') return true;
   if (shape === 'Circle') {
@@ -3812,13 +4541,12 @@ function hitboxShapeOverlapsTarget(shape, centerX, centerY, rotation, width, hei
     return hitboxPolygonsOverlap(triangle, target);
   }
   if (shape === 'Familiar' && familiarMaskPoints.length) {
-    const size = getFamiliarShapeSize(width, height);
-    const cellWidth = size.width / familiarMaskWidth;
-    const cellHeight = size.height / familiarMaskHeight;
+    const cellWidth = width / familiarMaskWidth;
+    const cellHeight = height / familiarMaskHeight;
     const extentX = (Math.abs(cos) * cellWidth + Math.abs(sin) * cellHeight) / 2;
     const extentY = (Math.abs(sin) * cellWidth + Math.abs(cos) * cellHeight) / 2;
     for (const point of familiarMaskPoints) {
-      const world = transformHitboxPoint(point.x * size.width, point.y * size.height, centerX, centerY, cos, sin);
+      const world = transformHitboxPoint(point.x * width, point.y * height, centerX, centerY, cos, sin);
       if (world.x + extentX >= left && world.x - extentX <= left + targetWidth &&
           world.y + extentY >= top && world.y - extentY <= top + targetHeight) return true;
     }
@@ -3827,9 +4555,13 @@ function hitboxShapeOverlapsTarget(shape, centerX, centerY, rotation, width, hei
 }
 
 function drawHitboxShape(context, shape, width, height) {
-  if (shape === 'Familiar' && familiarMaskCanvas) {
-    const size = getFamiliarShapeSize(width, height);
-    context.drawImage(familiarMaskCanvas, -size.width / 2, -size.height / 2, size.width, size.height);
+  if (shape === 'Familiar' && familiarMaskFillPath && familiarMaskOutlinePath) {
+    context.save();
+    context.scale(width, height);
+    context.fill(familiarMaskFillPath);
+    context.lineWidth = 2 / Math.max(1, Math.max(width, height));
+    context.stroke(familiarMaskOutlinePath);
+    context.restore();
     return;
   }
   context.beginPath();
@@ -3916,15 +4648,108 @@ function updateActiveHitboxes() {
   }
 }
 
+function projectileTouchesSquare(projectile, square, opponent) {
+  if (!square || square.health <= 0) return false;
+  const bounds = getHitbox(square, opponent);
+  const left = square.x + bounds.left;
+  const top = square.y + bounds.top;
+  const closestX = Math.max(left, Math.min(projectile.x, left + bounds.width));
+  const closestY = Math.max(top, Math.min(projectile.y, top + bounds.height));
+  const dx = projectile.x - closestX;
+  const dy = projectile.y - closestY;
+  return dx * dx + dy * dy <= projectile.radius * projectile.radius;
+}
+
+function applyProjectileBounceDamage(projectile, targetIndex, target, amount = projectile.bounceDamage) {
+  const damage = Math.max(0, Number(amount) || 0);
+  if (!damage || target.health <= 0) return;
+  const damageTaken = projectile.preview ? damage : combatStateActive(target, 'IFrames') ? 0 : Math.min(target.health, damage);
+  if (!projectile.preview && damageTaken > 0) {
+    runMovesForCondition(targetIndex, 'damaged', getDamageSourceSide(projectile.attackerIndex, targetIndex));
+    target.health = Math.max(0, target.health - damageTaken);
+    playWinnerSoundIfNeeded();
+    if (matchEnded) return;
+  }
+  if (damageTaken > 0) {
+    addDamagePopup(targetIndex, target.x + (Math.random() * 24 - 12), target.y - target.size / 2 - 18, damageTaken);
+    if (projectile.soundURL) playTransientSound(projectile.soundURL);
+  }
+}
+
 function updateActiveProjectiles(dt) {
   for (let index = activeProjectiles.length - 1; index >= 0; index--) {
     if (matchEnded) break;
     const projectile = activeProjectiles[index];
     if (!projectile) continue;
     const attacker = squares[projectile.attackerIndex];
+    const advanced = projectile.advanced;
+    const orbit = advanced?.orbit;
+    const isOrbiting = Boolean(orbit?.enabled && !(advanced.homingEnabled && advanced.disableAll) && !projectile.orbitDisabled);
+    if (isOrbiting) {
+      const centerIndex = Number.isInteger(orbit.centerIndex) ? orbit.centerIndex : projectile.attackerIndex;
+      const center = squares[centerIndex];
+      if (center) {
+        if (orbit.immune) projectile.targetIndex = 1 - centerIndex;
+        projectile.immuneIndex = orbit.immune ? centerIndex : null;
+        const orbiters = activeProjectiles.filter(item => item.idKey === projectile.idKey && item.advanced?.orbit?.enabled && !item.orbitDisabled);
+        const orbitSpeed = Number(orbit.speed) || 0;
+        const angularSpeed = orbitSpeed * Math.PI / 180;
+        const direction = projectile.orbitDirection ?? (orbit.counterClockwise ? -1 : 1);
+        let groupPhase = 0;
+        if (!orbit.aligned) projectile.orbitAngle ??= Math.atan2(projectile.y - center.y, projectile.x - center.x);
+        let previousOrbitAngle = projectile.orbitAngle;
+        if (orbit.aligned) {
+          const groupIndex = orbiters.indexOf(projectile);
+          groupPhase = groupIndex * Math.PI * 2 / Math.max(1, orbiters.length);
+          const startedAt = projectile.orbitStartedAt ?? Number(orbit.startedAt ?? projectile.startedAt);
+          const nextOrbitAngle = (projectile.orbitBaseAngle ?? 0) + direction * (simulationTime - startedAt) * angularSpeed + groupPhase;
+          if (!Number.isFinite(previousOrbitAngle)) previousOrbitAngle = nextOrbitAngle - direction * angularSpeed * dt;
+          projectile.orbitAngle = nextOrbitAngle;
+        } else {
+          projectile.orbitAngle += direction * angularSpeed * dt;
+        }
+        const distance = Math.max(0, Number(orbit.distance) || 0);
+        projectile.x = center.x + Math.cos(projectile.orbitAngle) * distance;
+        projectile.y = center.y + Math.sin(projectile.orbitAngle) * distance;
+        projectile.vx = -Math.sin(projectile.orbitAngle) * angularSpeed * distance * direction;
+        projectile.vy = Math.cos(projectile.orbitAngle) * angularSpeed * distance * direction;
+        const outside = projectile.x < projectile.radius || projectile.x > width - projectile.radius || projectile.y < projectile.radius || projectile.y > height - projectile.radius;
+        const indestructibleOrbit = projectile.indestructible && !projectile.originalPiercing;
+        if (outside && indestructibleOrbit) {
+          if (!orbit.phaseThroughArena && !projectile.orbitWasOutside && Number.isFinite(previousOrbitAngle)) {
+            projectile.orbitDirection = -direction;
+            projectile.orbitStartedAt = simulationTime;
+            projectile.orbitBaseAngle = previousOrbitAngle - groupPhase;
+            projectile.orbitAngle = previousOrbitAngle;
+            projectile.x = center.x + Math.cos(previousOrbitAngle) * distance;
+            projectile.y = center.y + Math.sin(previousOrbitAngle) * distance;
+            projectile.vx = -Math.sin(previousOrbitAngle) * angularSpeed * distance * projectile.orbitDirection;
+            projectile.vy = Math.cos(previousOrbitAngle) * angularSpeed * distance * projectile.orbitDirection;
+            projectile.orbitWasOutside = projectile.x < projectile.radius || projectile.x > width - projectile.radius || projectile.y < projectile.radius || projectile.y > height - projectile.radius;
+          } else projectile.orbitWasOutside = outside;
+        } else if (outside) {
+          if (projectile.bouncesRemaining <= 0) {
+            removeProjectileFromPlay(projectile);
+            projectile.complete?.(false);
+            continue;
+          }
+          projectile.bouncesRemaining -= 1;
+          projectile.orbitDisabled = true;
+        } else projectile.orbitWasOutside = false;
+      }
+    } else projectile.immuneIndex = null;
     const target = squares[projectile.targetIndex];
+    const spawnedBy = squares[projectile.spawnedByIndex ?? projectile.attackerIndex];
+    const spawnedByIndex = projectile.spawnedByIndex ?? projectile.attackerIndex;
     projectile.rotation += projectile.rotateSpeed * Math.PI / 180 * dt;
-    if (projectile.tracks && projectile.homing > 0 && target && target.health > 0) {
+    if (projectile.stuckTo === 'enemy') {
+      const stuckTarget = squares[projectile.stuckTargetIndex];
+      if (stuckTarget) {
+        projectile.x = stuckTarget.x + projectile.stuckOffsetX;
+        projectile.y = stuckTarget.y + projectile.stuckOffsetY;
+      }
+    }
+    if (!projectile.stuckTo && !isOrbiting && projectile.tracks && projectile.homing > 0 && target && target.health > 0) {
       const currentAngle = Math.atan2(projectile.vy, projectile.vx);
       const targetAngle = Math.atan2(target.y - projectile.y, target.x - projectile.x);
       const angleDifference = Math.atan2(
@@ -3933,6 +4758,7 @@ function updateActiveProjectiles(dt) {
       );
       const maxTurn = projectile.homing * Math.PI / 180 * dt;
       const angle = currentAngle + Math.max(-maxTurn, Math.min(maxTurn, angleDifference));
+      if (projectile.speed > 0) projectile.heading = angle;
       projectile.vx = Math.cos(angle) * projectile.speed;
       projectile.vy = Math.sin(angle) * projectile.speed;
     }
@@ -3943,59 +4769,88 @@ function updateActiveProjectiles(dt) {
     const lifetime = Math.max(0.001, projectile.expiresAt - projectile.startedAt);
     const scaleProgress = Math.max(0, Math.min(1, (simulationTime - projectile.startedAt) / lifetime));
     projectile.radius = projectile.baseSize * (1 + (projectile.endSizeMultiplier - 1) * scaleProgress) / 2;
-    projectile.x += projectile.vx * dt;
-    projectile.y += projectile.vy * dt;
-
-    const wallX = Math.min(projectile.radius, width / 2);
-    const wallY = Math.min(projectile.radius, height / 2);
-    let hitWallX = false;
-    let hitWallY = false;
-    if (projectile.x < wallX) {
-      projectile.x = wallX;
-      projectile.vx = Math.abs(projectile.vx);
-      hitWallX = true;
-    } else if (projectile.x > width - wallX) {
-      projectile.x = width - wallX;
-      projectile.vx = -Math.abs(projectile.vx);
-      hitWallX = true;
+    if (projectile.radius <= 0) {
+      removeProjectileFromPlay(projectile);
+      projectile.complete?.(false);
+      continue;
     }
-    if (projectile.y < wallY) {
-      projectile.y = wallY;
-      projectile.vy = Math.abs(projectile.vy);
-      hitWallY = true;
-    } else if (projectile.y > height - wallY) {
-      projectile.y = height - wallY;
-      projectile.vy = -Math.abs(projectile.vy);
-      hitWallY = true;
-    }
-    if (hitWallX || hitWallY) {
-      if (projectile.bouncesRemaining <= 0) {
-        removeProjectileFromPlay(projectile);
-        projectile.complete?.(false);
-        continue;
+    if (!projectile.stuckTo && !isOrbiting) {
+      projectile.x += projectile.vx * dt;
+      projectile.y += projectile.vy * dt;
+      const wallX = Math.min(projectile.radius, width / 2);
+      const wallY = Math.min(projectile.radius, height / 2);
+      let hitWallX = false;
+      let hitWallY = false;
+      if (projectile.x < wallX) {
+        projectile.x = wallX;
+        projectile.vx = Math.abs(projectile.vx);
+        hitWallX = true;
+      } else if (projectile.x > width - wallX) {
+        projectile.x = width - wallX;
+        projectile.vx = -Math.abs(projectile.vx);
+        hitWallX = true;
       }
-      projectile.bouncesRemaining -= 1;
-      projectile.tracks = false;
-      const directionX = hitWallX ? (projectile.x <= width / 2 ? 1 : -1) : null;
-      const directionY = hitWallY ? (projectile.y <= height / 2 ? 1 : -1) : null;
-      if (hitWallX && hitWallY) {
-        const angle = Math.random() * Math.PI / 2;
-        projectile.vx = Math.abs(Math.cos(angle)) * directionX * projectile.speed;
-        projectile.vy = Math.abs(Math.sin(angle)) * directionY * projectile.speed;
-      } else if (hitWallX) {
-        const angle = (Math.random() - 0.5) * Math.PI;
-        projectile.vx = Math.cos(angle) * directionX * projectile.speed;
-        projectile.vy = Math.sin(angle) * projectile.speed;
-      } else {
-        const angle = (Math.random() - 0.5) * Math.PI;
-        projectile.vx = Math.sin(angle) * projectile.speed;
-        projectile.vy = Math.cos(angle) * directionY * projectile.speed;
+      if (projectile.y < wallY) {
+        projectile.y = wallY;
+        projectile.vy = Math.abs(projectile.vy);
+        hitWallY = true;
+      } else if (projectile.y > height - wallY) {
+        projectile.y = height - wallY;
+        projectile.vy = -Math.abs(projectile.vy);
+        hitWallY = true;
+      }
+      if (hitWallX || hitWallY) {
+        if (projectile.sticksToBoundaries) {
+          projectile.stuckTo = 'boundary';
+          projectile.speed = 0;
+          projectile.vx = 0;
+          projectile.vy = 0;
+          projectile.tracks = false;
+          projectile.homing = 0;
+          projectile.expiresAt = Infinity;
+          const complete = projectile.complete;
+          projectile.complete = null;
+          complete?.(false);
+        } else if (projectile.bouncesRemaining <= 0 && !(projectile.indestructible && !projectile.originalPiercing)) {
+          removeProjectileFromPlay(projectile);
+          projectile.complete?.(false);
+          continue;
+        } else {
+          if (!(projectile.indestructible && !projectile.originalPiercing)) projectile.bouncesRemaining -= 1;
+          projectile.tracks = false;
+          const directionX = hitWallX ? (projectile.x <= width / 2 ? 1 : -1) : null;
+          const directionY = hitWallY ? (projectile.y <= height / 2 ? 1 : -1) : null;
+          if (hitWallX && hitWallY) {
+            const angle = Math.random() * Math.PI / 2;
+            projectile.vx = Math.abs(Math.cos(angle)) * directionX * projectile.speed;
+            projectile.vy = Math.abs(Math.sin(angle)) * directionY * projectile.speed;
+          } else if (hitWallX) {
+            const angle = (Math.random() - 0.5) * Math.PI;
+            projectile.vx = Math.cos(angle) * directionX * projectile.speed;
+            projectile.vy = Math.sin(angle) * projectile.speed;
+          } else {
+            const angle = (Math.random() - 0.5) * Math.PI;
+            projectile.vx = Math.sin(angle) * projectile.speed;
+            projectile.vy = Math.cos(angle) * directionY * projectile.speed;
+          }
+        }
       }
     }
-
     rememberProjectilePosition(projectile);
+    let boundaryTouched = false;
+    const boundaryMode = Boolean(projectile.advanced?.boundaries && projectile.sticksToBoundaries && projectile.boundaryDamage > 0 && !(projectile.advanced.homingEnabled && projectile.advanced.disableAll));
+    if (boundaryMode) {
+      for (let victimIndex = 0; victimIndex < squares.length; victimIndex++) {
+        const inside = projectileTouchesSquare(projectile, squares[victimIndex], squares[1 - victimIndex]);
+        if (inside && !projectile.boundaryInside[victimIndex]) {
+          boundaryTouched = true;
+          if (victimIndex !== projectile.immuneIndex) applyProjectileBounceDamage(projectile, victimIndex, squares[victimIndex], projectile.boundaryDamage);
+        }
+        projectile.boundaryInside[victimIndex] = inside;
+      }
+    }
     const bounds = target && getHitbox(target, attacker);
-    if (target && target.health > 0 && bounds) {
+    if (projectile.stuckTo !== 'enemy' && !(projectile.stuckTo === 'boundary' && projectile.completed) && target && target.health > 0 && bounds) {
       const left = target.x + bounds.left;
       const top = target.y + bounds.top;
       let projectileHitsTarget = false;
@@ -4030,14 +4885,28 @@ function updateActiveProjectiles(dt) {
       }
       const hitRateReady = projectile.lastHitAt === null ||
         (projectile.hitRate > 0 && simulationTime >= projectile.lastHitAt + projectile.hitRate);
-      if (projectileHitsTarget && hitRateReady) {
+      if (!boundaryMode && projectileHitsTarget && hitRateReady) {
         if (combatStateActive(target, 'Deflect') && !projectile.deflected) {
           projectile.deflected = true;
           [projectile.attackerIndex, projectile.targetIndex] = [projectile.targetIndex, projectile.attackerIndex];
           projectile.vx *= -1; projectile.vy *= -1; projectile.damage = 0; projectile.lastHitAt = null; projectile.tracks = false; projectile.homing = 0;
           continue;
         }
-        if (!projectile.piercing) removeProjectileFromPlay(projectile);
+        for (const resolveTouch of projectile.skipOnTouchResolvers) resolveTouch(true);
+        projectile.skipOnTouchResolvers.clear();
+        if (!projectile.piercing && !projectile.sticksToEnemy && projectile.stuckTo !== 'boundary') removeProjectileFromPlay(projectile);
+        if (projectile.sticksToEnemy && projectile.stuckTo !== 'boundary' && projectile.stuckTo !== 'enemy') {
+          projectile.stuckTo = 'enemy';
+          projectile.stuckTargetIndex = projectile.targetIndex;
+          projectile.stuckOffsetX = projectile.x - target.x;
+          projectile.stuckOffsetY = projectile.y - target.y;
+          projectile.speed = 0;
+          projectile.vx = 0;
+          projectile.vy = 0;
+          projectile.tracks = false;
+          projectile.homing = 0;
+          projectile.expiresAt = Infinity;
+        }
         projectile.targetDirection = Math.atan2(target.vy, target.vx);
         projectile.lastHitAt = simulationTime;
         if (projectile.soundURL) playTransientSound(projectile.soundURL);
@@ -4060,7 +4929,48 @@ function updateActiveProjectiles(dt) {
           projectile.complete?.(true);
           projectile.complete = null;
         }
+        if (projectile.cancelOnTouch) {
+          cancelProjectilesById(projectile.idKey, projectile);
+          continue;
+        }
         if (!projectile.piercing) continue;
+      }
+    }
+
+    if (boundaryTouched) {
+      for (const resolveTouch of projectile.skipOnTouchResolvers) resolveTouch(true);
+      projectile.skipOnTouchResolvers.clear();
+      if (!projectile.completed) {
+        projectile.completed = true;
+        projectile.complete?.(true);
+        projectile.complete = null;
+      }
+      if (projectile.cancelOnTouch) {
+        cancelProjectilesById(projectile.idKey, projectile);
+        continue;
+      }
+    }
+
+    if (projectile.stuckTo && projectileTouchesSquare(projectile, spawnedBy, squares[1 - spawnedByIndex])) {
+      for (const resolveTouch of projectile.skipOnTouchResolvers) resolveTouch(true);
+      projectile.skipOnTouchResolvers.clear();
+      const ownerHitReady = projectile.ownerLastHitAt === null ||
+        (projectile.hitRate > 0 && simulationTime >= projectile.ownerLastHitAt + projectile.hitRate);
+      if (projectile.hitSelfWhenStuck && ownerHitReady && projectile.damage > 0) {
+        projectile.ownerLastHitAt = simulationTime;
+        if (projectile.soundURL) playTransientSound(projectile.soundURL);
+        const damageTaken = projectile.preview ? projectile.damage : combatStateActive(spawnedBy, 'IFrames') ? 0 : Math.min(spawnedBy.health, projectile.damage);
+        if (!projectile.preview && damageTaken > 0) {
+          runMovesForCondition(spawnedByIndex, 'damaged', getDamageSourceSide(projectile.targetIndex, spawnedByIndex));
+          spawnedBy.health = Math.max(0, spawnedBy.health - damageTaken);
+          playWinnerSoundIfNeeded();
+        }
+        if (damageTaken > 0) addDamagePopup(spawnedByIndex, spawnedBy.x + (Math.random() * 24 - 12), spawnedBy.y - spawnedBy.size / 2 - 18, damageTaken);
+        if (matchEnded) continue;
+      }
+      if (projectile.cancelOnTouch) {
+        cancelProjectilesById(projectile.idKey, projectile);
+        continue;
       }
     }
 
@@ -4660,6 +5570,12 @@ function draw(time) {
       if (hitWallX || hitWallY) {
         addBounceVariation(square, hitWallX, hitWallY, squares[1 - index]);
         playWallBounceSound();
+        for (const projectile of activeProjectiles) {
+          if (projectile.stuckTo === 'enemy' && projectile.stuckTargetIndex === index) {
+            applyProjectileBounceDamage(projectile, index, square);
+            if (matchEnded) break;
+          }
+        }
       }
     }
     if (isRunning) {
@@ -4668,7 +5584,7 @@ function draw(time) {
         runMovesForCondition(0, 'collision', collision.sideA);
         runMovesForCondition(1, 'collision', collision.sideB);
       }
-      advanceDirectionMoves();
+      advanceDirectionMoves(dt);
     }
   }
 
