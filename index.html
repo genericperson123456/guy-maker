@@ -6,7 +6,6 @@
     <meta name="theme-color" content="#f4f4f1" />
     <link rel="icon" href="data:," />
     <title>Guy Maker</title>
-    <link rel="icon" type="image/png" href="./gravityguy.png">
     <link rel="stylesheet" href="./style.css" />
     <script type="module" src="./app.js"></script>
   </head>
@@ -18,11 +17,11 @@
         <option value="guy-two">Guy 2</option>
       </select>
       <select id="editor-category-select" class="category-select" aria-label="Select a category">
-        <option value="sprites">Sprites</option>
+        <option value="cosmetic">Cosmetic</option>
         <option value="statistics">Statistics</option>
         <option value="moves">Moves</option>
       </select>
-      <section class="editor-page" id="sprites-page">
+      <section class="editor-page" id="cosmetic-page">
         <section class="guy-category" id="guy-one" aria-labelledby="guy-one-label">
           <h3 id="guy-one-label">Idle Sprite</h3>
           <div class="sprite-upload-row">
@@ -97,6 +96,7 @@
           </label>
         </div>
       </div>
+      <div class="arena-label" id="arena-label" hidden></div>
       <section class="canvas-frame" aria-label="Animation canvas">
         <canvas id="scene" aria-label="Two squares bouncing inside a canvas"></canvas>
         <button id="arena-resize-handle" class="arena-resize-handle" type="button" aria-label="Drag to resize arena" hidden><span></span></button>
@@ -134,8 +134,25 @@
     </main>
     <div class="modal-backdrop watermark-backdrop" id="watermark-modal" hidden>
       <form class="watermark-prompt" id="watermark-form" role="dialog" aria-modal="true" aria-labelledby="watermark-title">
-        <h2 id="watermark-title">Add Watermark</h2>
-        <label for="watermark-text">Text</label>
+        <h2 id="watermark-title">View Mode Settings</h2>
+        <label for="label-text">Add Label</label>
+        <input id="label-text" type="text" maxlength="120" autocomplete="off" placeholder="Text above the arena (optional)" />
+        <label for="youtube-start-delay">Start Delay</label>
+        <select id="youtube-start-delay">
+          <option value="3" selected>3 seconds</option>
+          <option value="5">5 seconds</option>
+          <option value="10">10 seconds</option>
+        </select>
+        <label for="youtube-speed">Speed</label>
+        <select id="youtube-speed">
+          <option value="regular" selected>Regular</option>
+          <option value="2x">2x Speed</option>
+          <option value="3x">3x Speed</option>
+          <option value="5x">5x Speed</option>
+          <option value="2x-after-30">2x Speed after 30 seconds</option>
+          <option value="3x-after-30">3x Speed after 30 seconds</option>
+        </select>
+        <label for="watermark-text">Add Watermark</label>
         <input id="watermark-text" type="text" maxlength="120" autocomplete="off" placeholder="Leave empty for no watermark" />
         <p class="watermark-prompt-credit">Please credit SpennTF2 if making a video!</p>
         <div class="watermark-prompt-actions">
@@ -169,6 +186,7 @@
               <option value="metronome">Metronome Tick</option>
               <option value="match-start">Match Start</option>
               <option value="click">Click</option>
+              <option value="signal">Signal</option>
             </select>
           </label>
           <div class="condition-properties">
@@ -242,6 +260,11 @@
             </div>
             <p class="condition-fields match-start-copy" id="match-start-properties" hidden>When the match starts, runs the timeline.</p>
             <p class="condition-fields match-start-copy" id="click-properties" hidden>Once the user clicks anywhere, run the timeline.</p>
+            <div class="condition-fields" id="signal-condition-properties" hidden>
+              <span>When receiving a signal with the</span>
+              <input id="signal-condition-id" type="text" maxlength="120" placeholder="ID" aria-label="Signal ID" />
+              <span>ID, run the timeline.</span>
+            </div>
           </div>
         </div>
         <div class="move-editor-workspace">
@@ -279,6 +302,7 @@
                   <button id="variable-node" class="hitbox-node" type="button">Variable</button>
                   <button id="skip-node" class="hitbox-node" type="button">Skip</button>
                   <button id="random-skip-node" class="hitbox-node" type="button">Random Skip</button>
+                  <button id="signal-node" class="hitbox-node" type="button">Signal</button>
                   <button id="advanced-projectile-node" class="hitbox-node" type="button">Advanced Projectile</button>
                 </div>
               </details>
@@ -287,7 +311,7 @@
               <h3>Node Properties</h3>
               <div class="hitbox-properties" hidden>
                 <label class="hitbox-damage-setting">Damage to target
-                  <input id="hitbox-damage" type="number" step="1" value="10" />
+                  <input id="hitbox-damage" type="text" inputmode="decimal" placeholder="0" value="10" />
                 </label>
                 <div class="hitbox-size-editor">
                   <div id="hitbox-preview" class="hitbox-preview" aria-label="Hitbox dimensions compared with the selected guy">
@@ -379,6 +403,13 @@
                   <label class="file-picker-button" for="projectile-sound">Choose file</label>
                   <button id="projectile-sound-default" class="default-sound-button" type="button">Use default sound</button>
                 </div>
+                <div class="hitbox-sound-setting projectile-sound-setting">
+                  <span class="hitbox-sound-label">Destroy Sound</span>
+                  <span id="projectile-destroy-sound-name" class="sound-file-name">Default</span>
+                  <input id="projectile-destroy-sound" class="file-picker-input" type="file" accept="audio/*" />
+                  <label class="file-picker-button" for="projectile-destroy-sound">Choose file</label>
+                  <button id="projectile-destroy-sound-default" class="default-sound-button" type="button">Use default sound</button>
+                </div>
                 <label class="hitbox-damage-setting">Damage to target
                   <input id="projectile-damage" type="number" min="0" max="9999" step="1" value="112" />
                 </label>
@@ -397,20 +428,23 @@
                   <input id="projectile-rotation-value" type="number" min="0" max="359" step="1" value="90" aria-label="Projectile direction in degrees" />
                   <span>°</span>
                 </div>
+                <label id="projectile-random-setting" class="hitbox-anchored-setting"><input id="projectile-random" type="checkbox" />Random</label>
                 <label class="hitbox-anchored-setting"><input id="projectile-rotate-to-direction" type="checkbox" />Rotate to direction</label>
-                <label class="hitbox-anchored-setting"><input id="projectile-tracks" type="checkbox" />Tracks</label>
+                <label id="projectile-tracks-setting" class="hitbox-anchored-setting"><input id="projectile-tracks" type="checkbox" />Tracks</label>
+                <div id="projectile-track-properties" class="sub-property-options" hidden>
+                  <label id="projectile-angle-offset-setting" class="hitbox-damage-setting">Angle offset (°)
+                    <input id="projectile-angle-offset" type="number" min="0" max="180" step="1" value="0" />
+                  </label>
+                  <label id="projectile-homing-setting" class="hitbox-damage-setting projectile-legacy-setting" hidden>Homing (°/second)
+                    <input id="projectile-homing" type="number" min="0" max="3600" step="1" value="0" />
+                  </label>
+                </div>
                 <label class="hitbox-anchored-setting projectile-legacy-setting"><input id="projectile-piercing" type="checkbox" />Piercing</label>
                 <label id="projectile-hit-rate-setting" class="hitbox-damage-setting projectile-legacy-setting" hidden>Hit Rate (seconds)
                   <input id="projectile-hit-rate" type="number" min="0" step="0.1" value="1" />
                 </label>
                 <label id="projectile-damage-deduction-setting" class="hitbox-damage-setting projectile-legacy-setting" hidden>Piercing Damage Deduction
                   <input id="projectile-damage-deduction" type="number" min="0" step="1" value="0" />
-                </label>
-                <label id="projectile-angle-offset-setting" class="hitbox-damage-setting" hidden>Angle offset (°)
-                  <input id="projectile-angle-offset" type="number" min="0" max="180" step="1" value="0" />
-                </label>
-                <label id="projectile-homing-setting" class="hitbox-damage-setting projectile-legacy-setting" hidden>Homing (°/second)
-                  <input id="projectile-homing" type="number" min="0" max="3600" step="1" value="0" />
                 </label>
                 <label class="hitbox-damage-setting">Size
                   <input id="projectile-size" type="number" min="0" max="10" step="0.1" value="1" />
@@ -475,6 +509,14 @@
                   <label class="hitbox-anchored-setting"><input id="advanced-orbit-enabled" type="checkbox" />Orbit</label>
                   <div id="advanced-orbit-properties" class="sub-property-options" hidden>
                     <label class="hitbox-damage-setting">Speed<input id="advanced-orbit-speed" type="number" step="0.1" value="90" /></label>
+                    <div id="advanced-orbit-starting-direction-setting" class="hitbox-rotation-setting">
+                      <span>Starting Direction</span>
+                      <button id="advanced-orbit-starting-direction-dial" class="rotation-dial" type="button" role="slider" aria-label="Orbit starting direction" aria-valuemin="0" aria-valuemax="359" aria-valuenow="90" aria-valuetext="90 degrees" tabindex="0"><span></span></button>
+                      <input id="advanced-orbit-starting-direction" type="number" min="0" max="359" step="1" value="90" aria-label="Orbit starting direction in degrees" />
+                      <span>°</span>
+                    </div>
+                    <label id="advanced-orbit-random-setting" class="hitbox-anchored-setting"><input id="advanced-orbit-random" type="checkbox" />Random</label>
+                    <label id="advanced-orbit-track-enemy-setting" class="hitbox-anchored-setting"><input id="advanced-orbit-track-enemy" type="checkbox" />Track Enemy</label>
                     <label class="hitbox-anchored-setting"><input id="advanced-orbit-aligned" type="checkbox" />Aligned</label>
                     <label class="hitbox-anchored-setting"><input id="advanced-orbit-counter-clockwise" type="checkbox" />Counter Clockwise</label>
                     <label class="hitbox-anchored-setting"><input id="advanced-orbit-target-hitbox" type="checkbox" />Target of hitbox</label>
@@ -501,6 +543,12 @@
                     <label class="hitbox-damage-setting">Damage<input id="advanced-change-damage" type="number" step="0.1" value="10" /></label>
                     <label class="hitbox-damage-setting">Time<input id="advanced-change-time" type="number" min="0" step="0.01" value="4" /></label>
                     <label class="hitbox-damage-setting">Bounce Count<input id="advanced-change-bounces" type="number" min="0" step="1" value="0" /></label>
+                  </div>
+                </div>
+                <div class="advanced-projectile-group">
+                  <label class="hitbox-anchored-setting"><input id="advanced-transfer" type="checkbox" />Transfer</label>
+                  <div id="advanced-transfer-properties" class="sub-property-options" hidden>
+                    <label class="hitbox-anchored-setting"><input id="advanced-transfer-reverse" type="checkbox" />Reverse</label>
                   </div>
                 </div>
               </div>
@@ -553,6 +601,17 @@
                 <label class="hitbox-anchored-setting"><input id="random-skip-target-of-hitbox" type="checkbox" />Target of hitbox</label>
                 <div id="random-skip-target-picker" class="node-target-picker" hidden></div>
               </div>
+              <div id="signal-node-properties" class="wait-properties" hidden>
+                <div id="signal-node-target-setting">
+                  <span class="skip-property-label">Node</span>
+                  <button id="signal-node-target" class="node-target-button" type="button">Select node</button>
+                  <div id="signal-node-target-picker" class="node-target-picker" hidden></div>
+                </div>
+                <label class="hitbox-damage-setting">Value
+                  <input id="signal-node-value" type="text" maxlength="120" placeholder="Signal ID" />
+                </label>
+                <label class="hitbox-anchored-setting"><input id="signal-node-receive" type="checkbox" /><span id="signal-node-mode-label">Send</span></label>
+              </div>
               <div id="skip-properties" class="wait-properties" hidden>
                 <span class="skip-property-label">Node</span>
                 <button id="skip-node-target" class="node-target-button" type="button">Select node</button>
@@ -583,6 +642,9 @@
                 <label class="wait-time-setting">Move Cooldown
                   <input id="cancel-move-cooldown" type="number" min="0" step="0.1" value="1" />
                   <span>seconds</span>
+                </label>
+                <label class="cancel-pattern-setting">Next Move
+                  <select id="cancel-pattern-move"><option value="">None</option></select>
                 </label>
               </div>
               <div class="sound-properties" hidden>
@@ -689,6 +751,9 @@
                   <label class="wait-time-setting">Time
                     <input id="sprite-replace-time" type="number" min="0" step="0.1" value="1" />
                     <span>seconds until idle sprite</span>
+                  </label>
+                  <label class="sprite-number-setting">Size
+                    <input id="sprite-replace-size" type="number" min="0" step="0.1" value="1" />
                   </label>
                   <label class="sprite-number-setting">Rotation (°)
                     <input id="sprite-replace-rotation" type="number" step="1" value="0" />
