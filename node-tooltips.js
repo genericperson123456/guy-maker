@@ -6,7 +6,7 @@ if (panel) {
   tip.setAttribute('role', 'tooltip');
   tip.hidden = true;
   document.body.append(tip);
-
+// Everything below this is every tooltip organized like absolute SHIT. Sorry. 
   const byId = {
     'hitbox-damage': 'Damage this hitbox deals when it hits the opponent.',
     'hitbox-size-x': 'The hitbox width, relative to the character size.', 'hitbox-size-y': 'The hitbox height, relative to the character size.',
