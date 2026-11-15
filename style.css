@@ -33,7 +33,6 @@ body {
   background: #fbfbf9;
   box-shadow: 0 12px 34px rgb(35 35 25 / 4%);
 }
-
 .maker-panel h2 {
   margin: 0;
   text-align: center;
@@ -72,6 +71,12 @@ body {
 }
 
 .guy-category .sprite-setting-title { margin-top: 24px; }
+.theme-setting { margin-top: 28px; padding-top: 18px; border-top: 1px solid #e3e3de; }
+.theme-setting h3 { margin: 0; font-size: 12px; font-weight: 600; }
+.theme-audio-row { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 4px 10px; margin-top: 6px; }
+.theme-audio-row [id$="-upload"] { grid-column: 1; grid-row: 1; }
+.theme-audio-row .upload-button { grid-column: 1; grid-row: 1; margin-top: 0; }
+.theme-audio-row span { min-width: 0; overflow: hidden; color: #777872; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 
 .hitbox-toggle {
   display: flex;
@@ -121,7 +126,8 @@ body {
   font-weight: 600;
 }
 
-.guy-stats input {
+.guy-stats input,
+.guy-stats select {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #deded8;
@@ -130,8 +136,10 @@ body {
   background: #f4f4f1;
   font: 500 13px 'DM Mono', monospace;
 }
+.guy-stats select { font-family: 'DM Sans', sans-serif; cursor: pointer; }
 
-.guy-stats input:focus-visible { outline: 2px solid #5868d8; outline-offset: 2px; }
+.guy-stats input:focus-visible,
+.guy-stats select:focus-visible { outline: 2px solid #5868d8; outline-offset: 2px; }
 .guy-stats input::placeholder { color: rgb(32 33 31 / 38%); opacity: 1; }
 
 .upload-button {
@@ -171,6 +179,38 @@ body {
   width: min(100%, 640px);
   flex: 0 1 640px;
 }
+
+.game-settings-panel {
+  align-self: flex-start;
+  width: 210px;
+  flex: 0 0 210px;
+  margin-top: 0;
+  padding: 20px 16px;
+  border: 1px solid #e3e3de;
+  background: #fbfbf9;
+  box-shadow: 0 12px 34px rgb(35 35 25 / 4%);
+}
+.game-settings-panel h2 { margin: 0 0 22px; font-size: 14px; font-weight: 700; letter-spacing: -.03em; text-align: center; }
+.game-mode-setting { display: grid; gap: 8px; color: #454640; font-size: 12px; font-weight: 600; }
+.game-mode-setting select { width: 100%; min-height: 38px; padding: 0 9px; border: 1px solid #deded8; border-radius: 0; color: #20211f; background: #f4f4f1; font: 600 12px 'DM Sans', sans-serif; }
+.game-mode-setting select:focus-visible { outline: 2px solid #5868d8; outline-offset: 2px; }
+.mode-settings { display: grid; gap: 14px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #e3e3de; }
+.mode-settings[hidden] { display: none; }
+.mode-settings > label:not(.game-setting-checkbox) { display: grid; gap: 7px; color: #454640; font-size: 11px; font-weight: 600; }
+.mode-settings input[type="number"] { width: 100%; min-height: 34px; padding: 0 8px; border: 1px solid #deded8; border-radius: 0; color: #20211f; background: #f4f4f1; font: 500 12px 'DM Mono', monospace; }
+.game-setting-checkbox { display: flex; align-items: center; gap: 8px; color: #454640; font-size: 11px; font-weight: 600; cursor: pointer; }
+.game-setting-checkbox input { width: 15px; height: 15px; margin: 0; accent-color: #5868d8; }
+.new-guy-button { min-height: 36px; padding: 0 10px; border: 1px solid #deded8; color: #20211f; background: #f4f4f1; font: 600 12px 'DM Sans', sans-serif; cursor: pointer; }
+.new-guy-button:hover:not(:disabled) { background: #e8e8e2; }
+.new-guy-button:disabled { color: #777872; cursor: default; }
+.team-roster-group { display: grid; gap: 8px; }
+.team-roster-group h3 { margin: 0; padding-bottom: 5px; border-bottom: 1px solid #e3e3de; color: #20211f; font-size: 12px; }
+.team-roster-group label { display: grid; grid-template-columns: 14px minmax(0, 1fr); align-items: center; gap: 8px; color: #777872; font: 500 10px 'DM Mono', monospace; }
+.team-roster-group label[hidden] { display: none; }
+.team-roster-select { width: 100%; min-width: 0; height: 32px; padding: 0 7px; border: 1px solid #deded8; border-radius: 0; color: #20211f; background: #f4f4f1; font: 500 11px 'DM Sans', sans-serif; }
+.team-roster-select:focus-visible { outline: 2px solid #5868d8; outline-offset: 2px; }
+.team-roster-select:disabled { color: #777872; cursor: default; }
+.mode-settings input:focus-visible { outline: 2px solid #5868d8; outline-offset: 2px; }
 
 .arena-placeholder-actions {
   position: absolute;
@@ -257,7 +297,8 @@ body {
 .background-custom-color:focus-within { outline: 2px solid #5868d8; outline-offset: 2px; }
 
 body > .maker-panel,
-body > .stage { position: relative; left: -50px; }
+body > .stage,
+body > .game-settings-panel { position: relative; left: -50px; }
 
 .topbar, .bottom-bar {
   display: flex;
@@ -413,11 +454,13 @@ canvas { display: block; width: 100%; height: 100%; }
 .credit a { color: #20211f; font-weight: 700; }
 
 .watermark-mode .maker-panel,
+.watermark-mode .game-settings-panel,
 .watermark-mode .play-controls,
 .watermark-mode .restart-controls { display: none; }
 body.watermark-mode {
   height: auto;
   min-height: 100vh;
+  padding-bottom: max(50vh, 280px);
   overflow: visible;
 }
 .watermark-mode .arena-placeholder-actions {
@@ -436,6 +479,58 @@ body.watermark-mode {
   text-align: center;
   overflow-wrap: anywhere;
 }
+.team-view-labels {
+  position: relative;
+  width: 100%;
+  margin: 0 0 12px;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+  pointer-events: none;
+}
+.watermark-mode.team-battles-mode .team-view-labels:not([hidden]) { display: flex; }
+.team-view-label {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 6px;
+  flex: 0 1 34%;
+  max-width: 34%;
+  text-align: center;
+  color: #fff;
+  -webkit-text-stroke: 1px #000;
+  paint-order: stroke fill;
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+.team-view-label[hidden] { display: none; }
+.team-view-label-left { justify-items: stretch; text-align: right; }
+.team-view-label-right { justify-items: stretch; text-align: left; }
+.team-view-label-left .team-view-members,
+.team-view-label-right .team-view-members { justify-items: stretch; }
+.team-view-members.team1 .team-view-member.current::after,
+.team-view-members.team2 .team-view-member.current::before {
+  display: inline-block;
+  color: var(--team-name-color, #fff);
+  font: 700 .85em/1 Arial, sans-serif;
+  -webkit-text-stroke: 1.5px #000;
+  text-shadow: 0 0 1px #000;
+  position: absolute;
+  top: 50%;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+.team-view-members.team1 .team-view-member.current::after {
+  content: '◀';
+  left: calc(100% + 6px);
+}
+.team-view-members.team2 .team-view-member.current::before {
+  content: '▶';
+  right: calc(100% + 6px);
+}
+.team-view-name { font: 800 clamp(22px, 4vw, 34px)/1.1 'DM Sans', sans-serif; overflow-wrap: anywhere; }
+.team-view-members { display: grid; justify-items: center; gap: 3px; }
+.team-view-member { position: relative; font: 700 clamp(16px, 2.3vw, 22px)/1.2 'DM Sans', sans-serif; overflow-wrap: anywhere; }
+.team-view-member.defeated { color: rgb(94, 94, 94); opacity: 1; }
 .watermark-mode #background-color-button,
 .watermark-mode .arena-placeholder-button:not(#watermark-button) { display: none; }
 .watermark-mode #background-color-panel { display: none !important; }
@@ -512,9 +607,28 @@ body.watermark-mode {
 }
 
 .watermark-prompt h2 { margin: 0 0 4px; font-size: 16px; }
-.watermark-prompt > label { color: #454640; font-size: 12px; font-weight: 600; }
+.watermark-prompt > label,
+.view-team-name-settings label { color: #454640; font-size: 12px; font-weight: 600; }
+.view-team-name-settings { display: grid; gap: 12px; }
+.view-team-name-settings[hidden] { display: none; }
+.team-name-field-row { display: flex; align-items: stretch; gap: 8px; }
+.team-name-field-row > input[type="text"] { flex: 1; width: 0; min-width: 0; }
+.team-name-color-picker { position: relative; flex: 0 0 34px; }
+.team-name-color-picker input[type="color"] {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.team-name-color-picker:focus-within { outline: 2px solid #5868d8; outline-offset: 2px; }
 .watermark-prompt > input,
-.watermark-prompt > select {
+.watermark-prompt > select,
+.view-team-name-settings input[type="text"] {
   width: 100%;
   height: 38px;
   padding: 0 10px;
@@ -1784,6 +1898,49 @@ body.watermark-mode {
 .health-icon[hidden] { display: none; }
 
 .health-icon svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.health-icon.time-battle svg { display: none; }
+.damage-score-value { display: none; }
+.health-icon.time-battle .damage-score-value {
+  position: absolute;
+  left: 50%;
+  display: grid;
+  min-width: 70px;
+  min-height: 56px;
+  place-items: center;
+  padding: 3px 8px;
+  color: #fff;
+  background: transparent;
+  font: 700 40px/1 'DM Mono', monospace;
+  text-align: center;
+  transform: translateX(-50%);
+  -webkit-text-stroke: 1.8px #000;
+  paint-order: stroke fill;
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+.match-timer {
+  position: absolute;
+  top: auto;
+  bottom: 12px;
+  left: 50%;
+  z-index: 7;
+  min-width: 56px;
+  padding: 5px 10px;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  font: 700 34px/1 'DM Mono', monospace;
+  -webkit-text-stroke: 1.5px #000;
+  paint-order: stroke fill;
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+  text-align: center;
+  transform: translateX(-50%);
+  transition: transform 90ms ease-in-out;
+  pointer-events: none;
+}
+.match-timer[hidden] { display: none; }
+.match-timer.timer-low { color: #ff333b; }
+.match-timer.timer-shaking { will-change: transform; }
+.match-timer { transform: translate(calc(-50% + var(--shake-x, 0px)), var(--shake-y, 0px)) rotate(var(--shake-angle, 0deg)); }
 .health-icon .health-cross-bg { fill: #000; stroke: #000; stroke-width: 2px; }
 .health-icon .health-cross-outline { fill: none; stroke: #000; stroke-width: 2px; }
 .health-icon .health-fill { fill: #fff; }
@@ -1876,6 +2033,8 @@ body.watermark-mode {
   body { flex-direction: column; align-items: stretch; padding: 118px 18px 18px; gap: 14px; }
   .maker-panel { width: 100%; min-height: 0; height: auto; flex-basis: auto; padding: 20px; }
   .stage { width: 100%; flex-basis: auto; }
+  .game-settings-panel { width: 100%; flex-basis: auto; }
+  body > .maker-panel, body > .stage, body > .game-settings-panel { left: 0; }
   .move-editor-workspace { padding-top: 16px; }
   .move-condition-row { grid-template-columns: 1fr; gap: 10px; }
 }

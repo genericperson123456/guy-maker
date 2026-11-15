@@ -1,0 +1,5 @@
+.node-property-tooltip { position: fixed; z-index: 10000; padding: 9px 11px; border-radius: 7px; background: #20221f; color: #fff; box-shadow: 0 5px 18px #17191433; font: 500 12px/1.4 'DM Sans', sans-serif; pointer-events: none; transform: translateY(-100%); animation: node-tip-in .12s ease-out; }
+.node-property-tooltip.below { transform: none; }
+.node-property-tooltip[hidden] { display: none; }
+@keyframes node-tip-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .node-property-tooltip { animation: none; } }

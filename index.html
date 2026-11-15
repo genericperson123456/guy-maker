@@ -8,7 +8,9 @@
     <title>Guy Maker</title>
     <link rel="icon" type="image/png" href="./gravityguy.png">
     <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./node-tooltips.css" />
     <script type="module" src="./app.js"></script>
+    <script type="module" src="./node-tooltips.js"></script>
   </head>
   <body>
     <aside class="maker-panel" aria-label="Guy Creator">
@@ -59,14 +61,30 @@
           <label class="sprite-number-setting">Rotate Speed<input id="guy-two-rotate-speed" type="number" min="-3600" max="3600" step="1" value="0" /></label>
           <label class="sprite-number-setting">Corner Padding<input id="guy-two-corner-padding" type="number" min="0" max="120" step="1" value="0" /></label>
         </section>
+        <section class="theme-setting" aria-labelledby="theme-setting-title">
+          <h3 id="theme-setting-title">Theme</h3>
+          <div class="theme-audio-row">
+            <input id="theme-audio-upload" type="file" accept="audio/*" />
+            <label class="upload-button" for="theme-audio-upload">Choose audio</label>
+            <span id="theme-audio-name">No audio selected</span>
+          </div>
+        </section>
       </section>
       <section class="editor-page" id="statistics-page" hidden>
         <div class="guy-stats" id="guy-one-stats">
+          <label>Name<input type="text" maxlength="40" data-stat="name" /></label>
           <label>Health<input type="number" min="0" max="9999" step="1" placeholder="1000" data-stat="health" /></label>
           <label>Speed<input type="number" min="1" max="1000" step="1" placeholder="246" data-stat="speed" /></label>
           <label>Size<input type="number" min="16" max="240" step="1" placeholder="100" data-stat="size" /></label>
         </div>
         <div class="guy-stats" id="guy-two-stats" hidden>
+          <label>Name<input type="text" maxlength="40" data-stat="name" /></label>
+          <label>Health<input type="number" min="0" max="9999" step="1" placeholder="1000" data-stat="health" /></label>
+          <label>Speed<input type="number" min="1" max="1000" step="1" placeholder="246" data-stat="speed" /></label>
+          <label>Size<input type="number" min="16" max="240" step="1" placeholder="100" data-stat="size" /></label>
+        </div>
+        <div class="guy-stats" id="guy-three-stats" hidden>
+          <label>Name<input type="text" maxlength="40" data-stat="name" /></label>
           <label>Health<input type="number" min="0" max="9999" step="1" placeholder="1000" data-stat="health" /></label>
           <label>Speed<input type="number" min="1" max="1000" step="1" placeholder="246" data-stat="speed" /></label>
           <label>Size<input type="number" min="16" max="240" step="1" placeholder="100" data-stat="size" /></label>
@@ -98,6 +116,10 @@
         </div>
       </div>
       <div class="arena-label" id="arena-label" hidden></div>
+      <div class="team-view-labels" id="team-view-labels" aria-hidden="true" hidden>
+        <div class="team-view-label team-view-label-left" id="team-one-view-label" hidden></div>
+        <div class="team-view-label team-view-label-right" id="team-two-view-label" hidden></div>
+      </div>
       <section class="canvas-frame" aria-label="Animation canvas">
         <canvas id="scene" aria-label="Two squares bouncing inside a canvas"></canvas>
         <button id="arena-resize-handle" class="arena-resize-handle" type="button" aria-label="Drag to resize arena" hidden><span></span></button>
@@ -110,6 +132,7 @@
               <path class="health-cross-outline" d="M24 0h24v24h24v24H48v24H24V48H0V24h24z" />
               <text x="36" y="37">1000</text>
             </svg>
+            <span class="damage-score-value">0</span>
           </div>
           <div class="health-icon" id="guy-two-health">
             <svg viewBox="0 0 72 72" focusable="false">
@@ -119,8 +142,10 @@
               <path class="health-cross-outline" d="M24 0h24v24h24v24H48v24H24V48H0V24h24z" />
               <text x="36" y="37">1000</text>
             </svg>
+            <span class="damage-score-value">0</span>
           </div>
         </div>
+        <div class="match-timer" id="match-timer" aria-live="off">30.00</div>
       </section>
       <div class="play-controls">
         <button id="start-button" type="button">Start</button>
@@ -133,11 +158,66 @@
       </div>
       <p class="credit"><span>Inspired by</span><a href="https://www.youtube.com/@Spenntf2/shorts" target="_blank" rel="noopener noreferrer">@SpennTF2</a></p>
     </main>
+    <aside class="game-settings-panel" aria-labelledby="game-settings-title">
+      <h2 id="game-settings-title">Game Settings</h2>
+      <label class="game-mode-setting" for="game-mode-select">Gamemodes
+        <select id="game-mode-select">
+          <option value="showdown" selected>Showdown</option>
+          <option value="team-battles">Team Battles</option>
+          <option value="time-battles">Time Battles</option>
+        </select>
+      </label>
+      <section id="time-battle-settings" class="mode-settings" hidden>
+        <label>Timer length
+          <input id="time-battle-duration" type="number" min="0.1" max="3600" step="0.1" value="30" />
+        </label>
+        <label>Turn red at (seconds)
+          <input id="time-battle-red-threshold" type="number" min="0" max="3600" step="0.1" value="5" />
+        </label>
+        <label class="game-setting-checkbox"><input id="time-battle-reverse-labels" type="checkbox" />Reverse Labels</label>
+      </section>
+      <section id="showdown-settings" class="mode-settings" hidden>
+        <label class="game-setting-checkbox"><input id="showdown-timer-enabled" type="checkbox" />Show timer</label>
+      </section>
+      <section id="team-battle-settings" class="mode-settings" hidden>
+        <button id="add-new-guy-button" class="new-guy-button" type="button">New Guy</button>
+        <section class="team-roster-group" aria-labelledby="team-one-title">
+          <h3 id="team-one-title">Team 1</h3>
+          <label>1<select class="team-roster-select" data-team="team1" data-slot="0"><option value="guy-one" selected>Guy 1</option><option value="guy-two">Guy 2</option></select></label>
+          <label>2<select class="team-roster-select" data-team="team1" data-slot="1"><option value="" selected>—</option><option value="guy-one">Guy 1</option><option value="guy-two">Guy 2</option></select></label>
+          <label>3<select class="team-roster-select" data-team="team1" data-slot="2"><option value="" selected>—</option><option value="guy-one">Guy 1</option><option value="guy-two">Guy 2</option></select></label>
+          <label>4<select class="team-roster-select" data-team="team1" data-slot="3"><option value="" selected>—</option></select></label>
+          <label>5<select class="team-roster-select" data-team="team1" data-slot="4"><option value="" selected>—</option></select></label>
+          <label>6<select class="team-roster-select" data-team="team1" data-slot="5"><option value="" selected>—</option></select></label>
+        </section>
+        <section class="team-roster-group" aria-labelledby="team-two-title">
+          <h3 id="team-two-title">Team 2</h3>
+          <label>1<select class="team-roster-select" data-team="team2" data-slot="0"><option value="guy-two" selected>Guy 2</option><option value="guy-one">Guy 1</option></select></label>
+          <label>2<select class="team-roster-select" data-team="team2" data-slot="1"><option value="" selected>—</option><option value="guy-two">Guy 2</option><option value="guy-one">Guy 1</option></select></label>
+          <label>3<select class="team-roster-select" data-team="team2" data-slot="2"><option value="" selected>—</option><option value="guy-two">Guy 2</option><option value="guy-one">Guy 1</option></select></label>
+          <label>4<select class="team-roster-select" data-team="team2" data-slot="3"><option value="" selected>—</option></select></label>
+          <label>5<select class="team-roster-select" data-team="team2" data-slot="4"><option value="" selected>—</option></select></label>
+          <label>6<select class="team-roster-select" data-team="team2" data-slot="5"><option value="" selected>—</option></select></label>
+        </section>
+      </section>
+    </aside>
     <div class="modal-backdrop watermark-backdrop" id="watermark-modal" hidden>
       <form class="watermark-prompt" id="watermark-form" role="dialog" aria-modal="true" aria-labelledby="watermark-title">
         <h2 id="watermark-title">View Mode Settings</h2>
-        <label for="label-text">Add Label</label>
+        <label id="view-label-setting-label" for="label-text">Add Label</label>
         <input id="label-text" type="text" maxlength="120" autocomplete="off" placeholder="Text above the arena (optional)" />
+        <div id="view-team-name-settings" class="view-team-name-settings" hidden>
+          <label for="view-team-one-name">Team 1 name</label>
+          <div class="team-name-field-row">
+            <input id="view-team-one-name" type="text" maxlength="80" autocomplete="off" placeholder="Team 1" />
+            <label class="team-name-color-picker arena-placeholder-button" title="Choose Team 1 name color"><img src="./uploads/image-2.png" alt="" /><input id="view-team-one-color" type="color" value="#ffffff" aria-label="Choose Team 1 name color" /></label>
+          </div>
+          <label for="view-team-two-name">Team 2 name</label>
+          <div class="team-name-field-row">
+            <input id="view-team-two-name" type="text" maxlength="80" autocomplete="off" placeholder="Team 2" />
+            <label class="team-name-color-picker arena-placeholder-button" title="Choose Team 2 name color"><img src="./uploads/image-2.png" alt="" /><input id="view-team-two-color" type="color" value="#ffffff" aria-label="Choose Team 2 name color" /></label>
+          </div>
+        </div>
         <label for="youtube-start-delay">Start Delay</label>
         <select id="youtube-start-delay">
           <option value="3" selected>3 seconds</option>

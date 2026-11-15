@@ -1,6 +1,19 @@
 const canvas = document.querySelector('#scene');
 const ctx = canvas.getContext('2d');
+const gameModeSelect = document.querySelector('#game-mode-select');
+const matchTimer = document.querySelector('#match-timer');
+const teamBattleSettings = document.querySelector('#team-battle-settings');
+const addNewGuyButton = document.querySelector('#add-new-guy-button');
+const teamRosterSelects = [...document.querySelectorAll('.team-roster-select')];
+const timeBattleSettings = document.querySelector('#time-battle-settings');
+const showdownSettings = document.querySelector('#showdown-settings');
+const timeBattleDurationInput = document.querySelector('#time-battle-duration');
+const timeBattleRedThresholdInput = document.querySelector('#time-battle-red-threshold');
+const timeBattleReverseLabelsInput = document.querySelector('#time-battle-reverse-labels');
+const showdownTimerEnabledInput = document.querySelector('#showdown-timer-enabled');
 const canvasFrame = document.querySelector('.canvas-frame');
+const themeAudioUpload = document.querySelector('#theme-audio-upload');
+const themeAudioName = document.querySelector('#theme-audio-name');
 const stage = document.querySelector('.stage');
 const startButton = document.querySelector('#start-button');
 const pauseButton = document.querySelector('#pause-button');
@@ -25,6 +38,15 @@ const watermarkForm = document.querySelector('#watermark-form');
 const watermarkTextInput = document.querySelector('#watermark-text');
 const cancelWatermarkButton = document.querySelector('#cancel-watermark');
 const labelTextInput = document.querySelector('#label-text');
+const viewLabelSettingLabel = document.querySelector('#view-label-setting-label');
+const viewTeamNameSettings = document.querySelector('#view-team-name-settings');
+const viewTeamOneNameInput = document.querySelector('#view-team-one-name');
+const viewTeamTwoNameInput = document.querySelector('#view-team-two-name');
+const viewTeamOneColorInput = document.querySelector('#view-team-one-color');
+const viewTeamTwoColorInput = document.querySelector('#view-team-two-color');
+const teamViewLabels = document.querySelector('#team-view-labels');
+const teamOneViewLabel = document.querySelector('#team-one-view-label');
+const teamTwoViewLabel = document.querySelector('#team-two-view-label');
 const youtubeStartDelayInput = document.querySelector('#youtube-start-delay');
 const youtubeSpeedInput = document.querySelector('#youtube-speed');
 const categorySelect = document.querySelector('#guy-category-select');
@@ -50,6 +72,7 @@ const statisticsPage = document.querySelector('#statistics-page');
 const movesPage = document.querySelector('#moves-page');
 const guyOneStats = document.querySelector('#guy-one-stats');
 const guyTwoStats = document.querySelector('#guy-two-stats');
+const guyThreeStats = document.querySelector('#guy-three-stats');
 const addMoveButton = document.querySelector('#add-move-button');
 const movesList = document.querySelector('#moves-list');
 const stackMovesInput = document.querySelector('#stack-moves');
@@ -367,17 +390,31 @@ const wallBounceAudio = wallBounceSounds.map(source => {
   return audio;
 });
 const winnerAudio = new Audio('./uploads/tf2-killstreak-end.mp3');
+const themeAudio = new Audio();
+themeAudio.loop = true;
+themeAudio.preload = 'auto';
 winnerAudio.preload = 'auto';
 winnerAudio.load();
 let winnerSoundPlayed = false;
+let lastKillSoundSquare = null;
 const flashedImageCache = new WeakMap();
 let visualMaskCanvas = null;
 let visualMaskContext = null;
 
 const squares = [
-  { x: 0, y: 0, startPositionX: null, startPositionY: null, vx: 112, vy: 82, startDirectionX: 112 / Math.hypot(112, 82), startDirectionY: 82 / Math.hypot(112, 82), speed: 246, defaultSpeed: 246, size: 100, defaultSize: 100, rotation: 0, rotateSpeed: 0, cornerPadding: 0, color: '#f27658', image: null, imageBounds: null, winImage: null, winImageBounds: null, hitboxMatchesPng: false, flipForEnemyEyeContact: true, reverseEyeContactFlip: false, eyeContactFlipAffectsHitbox: false, spriteReplace: null, health: maxHealth, maxHealth, defaultHealth: maxHealth, flashUntil: 0 },
-  { x: 0, y: 0, startPositionX: null, startPositionY: null, vx: -86, vy: -108, startDirectionX: -86 / Math.hypot(86, 108), startDirectionY: -108 / Math.hypot(86, 108), speed: 246, defaultSpeed: 246, size: 100, defaultSize: 100, rotation: 0, rotateSpeed: 0, cornerPadding: 0, color: '#5868d8', image: null, imageBounds: null, winImage: null, winImageBounds: null, hitboxMatchesPng: false, flipForEnemyEyeContact: true, reverseEyeContactFlip: false, eyeContactFlipAffectsHitbox: false, spriteReplace: null, health: maxHealth, maxHealth, defaultHealth: maxHealth, flashUntil: 0 },
+  { x: 0, y: 0, startPositionX: null, startPositionY: null, vx: 112, vy: 82, startDirectionX: 112 / Math.hypot(112, 82), startDirectionY: 82 / Math.hypot(112, 82), speed: 246, defaultSpeed: 246, size: 100, defaultSize: 100, rotation: 0, rotateSpeed: 0, cornerPadding: 0, name: 'Guy 2', color: '#f27658', image: null, imageBounds: null, winImage: null, winImageBounds: null, hitboxMatchesPng: false, flipForEnemyEyeContact: true, reverseEyeContactFlip: false, eyeContactFlipAffectsHitbox: false, spriteReplace: null, health: maxHealth, maxHealth, defaultHealth: maxHealth, damageDealt: 0, damageTaken: 0, team: 'none', flashUntil: 0 },
+  { x: 0, y: 0, startPositionX: null, startPositionY: null, vx: -86, vy: -108, startDirectionX: -86 / Math.hypot(86, 108), startDirectionY: -108 / Math.hypot(86, 108), speed: 246, defaultSpeed: 246, size: 100, defaultSize: 100, rotation: 0, rotateSpeed: 0, cornerPadding: 0, name: 'Guy 1', color: '#5868d8', image: null, imageBounds: null, winImage: null, winImageBounds: null, hitboxMatchesPng: false, flipForEnemyEyeContact: true, reverseEyeContactFlip: false, eyeContactFlipAffectsHitbox: false, spriteReplace: null, health: maxHealth, maxHealth, defaultHealth: maxHealth, damageDealt: 0, damageTaken: 0, team: 'none', flashUntil: 0 },
 ];
+
+const guyProfiles = { 'guy-one': squares[1], 'guy-two': squares[0] };
+function guyIdForNumber(number) {
+  const names = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+  return `guy-${names[number] || number}`;
+}
+function createGuyProfile(number) {
+  const colors = ['#56a56f', '#d08b44', '#a35dc7', '#40a9a0', '#ca5974', '#7884d6'];
+  return { name: `Guy ${number}`, x: 0, y: 0, startPositionX: null, startPositionY: null, vx: 246, vy: 0, startDirectionX: 1, startDirectionY: 0, speed: 246, defaultSpeed: 246, size: 100, defaultSize: 100, rotation: 0, rotateSpeed: 0, cornerPadding: 0, team: 'none', color: colors[(number - 3) % colors.length], image: null, imageBounds: null, winImage: null, winImageBounds: null, hitboxMatchesPng: false, flipForEnemyEyeContact: true, reverseEyeContactFlip: false, eyeContactFlipAffectsHitbox: false, spriteReplace: null, health: maxHealth, maxHealth, defaultHealth: maxHealth, damageDealt: 0, damageTaken: 0, flashUntil: 0, enteringFromOutside: false };
+}
 
 guyOneHitbox.addEventListener('change', () => { squares[1].hitboxMatchesPng = guyOneHitbox.checked; });
 guyTwoHitbox.addEventListener('change', () => { squares[0].hitboxMatchesPng = guyTwoHitbox.checked; });
@@ -438,11 +475,14 @@ connectCornerPadding(guyOneCornerPadding, squares[1]);
 connectCornerPadding(guyTwoCornerPadding, squares[0]);
 
 function updateEditorView() {
-  const showGuyOne = categorySelect.value === 'guy-one';
+  const selectedGuy = categorySelect.value;
+  const showGuyOne = selectedGuy === 'guy-one';
+  const showGuyTwo = selectedGuy === 'guy-two';
+  const isCustomGuy = !showGuyOne && !showGuyTwo;
   guyOneCategory.hidden = !showGuyOne;
-  guyTwoCategory.hidden = showGuyOne;
-  guyOneStats.hidden = !showGuyOne;
-  guyTwoStats.hidden = showGuyOne;
+  guyTwoCategory.hidden = !showGuyTwo;
+  cosmeticPage.querySelectorAll('.guy-category').forEach(panel => { panel.hidden = panel.id !== selectedGuy; });
+  statisticsPage.querySelectorAll('.guy-stats').forEach(panel => { panel.hidden = panel.id !== `${selectedGuy}-stats`; });
 
   const category = editorCategorySelect.value;
   cosmeticPage.hidden = category !== 'cosmetic';
@@ -458,6 +498,7 @@ updateEditorView();
 let width = 0;
 let height = 0;
 let defaultArenaSize = 0;
+let themeAudioURL = null;
 let lastTime = 0;
 let positioned = false;
 let isRunning = false;
@@ -467,6 +508,18 @@ let activeMovePreview = null;
 let previewMoveEndTime = 0;
 let matchEnded = false;
 let matchGeneration = 0;
+let gameMode = 'showdown';
+let timeBattleDuration = 30;
+let timeBattleRedThreshold = 5;
+let timeBattleRemaining = timeBattleDuration;
+let showdownElapsed = 0;
+let showdownTimerEnabled = false;
+let lastTimerShakeAt = 0;
+let teamBattleLineups = { team1: [], team2: [] };
+let teamBattlePositions = { team1: 0, team2: 0 };
+let teamBattleDefeated = { team1: new Set(), team2: new Set() };
+let teamEntryPending = false;
+let teamEntryTimer = null;
 let showWinSprites = false;
 let winSpriteTimer = null;
 let youtubeStartTimer = null;
@@ -476,6 +529,8 @@ let gameSpeed = 1;
 let needsStartMotion = true;
 let watermarkText = '';
 let arenaLabelText = '';
+let teamOneViewName = '';
+let teamTwoViewName = '';
 let arenaBackgroundColor = '#f4f4f1';
 let isArenaResizeMode = false;
 let debugHitboxesEnabled = false;
@@ -484,6 +539,263 @@ let arenaResizePointerStartX = 0;
 let arenaResizeStartSize = 0;
 let draggingGuyIndex = null;
 let draggingGuyPointerId = null;
+
+function updateTimeBattleDisplay() {
+  const timeBattle = gameMode === 'time-battles';
+  const seconds = timeBattle ? timeBattleRemaining : showdownElapsed;
+  const milliseconds = Math.max(0, Math.floor(seconds * 1000));
+  const secondsPart = Math.floor(milliseconds / 1000);
+  const hundredthsPart = Math.floor(milliseconds % 1000 / 10);
+  matchTimer.textContent = `${String(secondsPart).padStart(2, '0')}.${String(hundredthsPart).padStart(2, '0')}`;
+  const warning = timeBattle && timeBattleRemaining <= timeBattleRedThreshold;
+  const shaking = warning && isRunning;
+  matchTimer.classList.toggle('timer-low', warning);
+  matchTimer.classList.toggle('timer-shaking', shaking);
+  if (shaking) {
+    const now = performance.now();
+    if (now - lastTimerShakeAt >= 55) {
+      lastTimerShakeAt = now;
+      matchTimer.style.setProperty('--shake-x', `${(Math.random() - 0.5) * 10}px`);
+      matchTimer.style.setProperty('--shake-y', `${(Math.random() - 0.5) * 10}px`);
+      matchTimer.style.setProperty('--shake-angle', `${(Math.random() - 0.5) * 8}deg`);
+    }
+  } else {
+    lastTimerShakeAt = 0;
+    matchTimer.style.setProperty('--shake-x', '0px');
+    matchTimer.style.setProperty('--shake-y', '0px');
+    matchTimer.style.setProperty('--shake-angle', '0deg');
+  }
+}
+
+function updateGameModeUI() {
+  const timeBattle = gameMode === 'time-battles';
+  const teamBattle = gameMode === 'team-battles';
+  document.body.classList.toggle('time-battles-mode', timeBattle);
+  document.body.classList.toggle('team-battles-mode', teamBattle);
+  healthIcons.forEach(icon => icon.classList.toggle('time-battle', timeBattle));
+  timeBattleSettings.hidden = !timeBattle;
+  showdownSettings.hidden = gameMode !== 'showdown';
+  teamBattleSettings.hidden = !teamBattle;
+  matchTimer.hidden = !(timeBattle || (gameMode === 'showdown' && showdownTimerEnabled));
+  const settingsLocked = gameModeSelect.disabled;
+  timeBattleDurationInput.disabled = settingsLocked;
+  timeBattleRedThresholdInput.disabled = settingsLocked;
+  timeBattleReverseLabelsInput.disabled = settingsLocked;
+  showdownTimerEnabledInput.disabled = settingsLocked;
+  teamRosterSelects.forEach(select => { select.disabled = settingsLocked; });
+  addNewGuyButton.disabled = settingsLocked || Object.keys(guyProfiles).length >= 15;
+  updateTimeBattleDisplay();
+}
+
+function refreshTeamRosterOptions() {
+  for (const teamId of ['team1', 'team2']) {
+    const selects = teamRosterSelects.filter(select => select.dataset.team === teamId).sort((a, b) => Number(a.dataset.slot) - Number(b.dataset.slot));
+    for (let i = 2; i < selects.length; i++) {
+      if (!selects[i - 1].value) selects[i].value = '';
+    }
+  }
+  const availableIds = Object.keys(guyProfiles);
+  teamRosterSelects.forEach(select => {
+    const selected = select.value;
+    const occupied = new Set(teamRosterSelects.filter(other => other !== select).map(other => other.value).filter(Boolean));
+    const slot = Number(select.dataset.slot);
+    select.replaceChildren();
+    if (slot > 0) select.add(new Option('—', ''));
+    for (const id of availableIds) {
+      const profile = guyProfiles[id];
+      const option = new Option(profile.name?.trim() || `Guy ${availableIds.indexOf(id) + 1}`, id);
+      option.disabled = occupied.has(id);
+      select.add(option);
+    }
+    const fallback = select.dataset.team === 'team1' ? 'guy-one' : 'guy-two';
+    select.value = availableIds.includes(selected) ? selected : slot === 0 ? fallback : '';
+  });
+  for (const teamId of ['team1', 'team2']) {
+    const selects = teamRosterSelects.filter(select => select.dataset.team === teamId).sort((a, b) => Number(a.dataset.slot) - Number(b.dataset.slot));
+    let previousSelected = false;
+    selects.forEach(select => {
+      const slot = Number(select.dataset.slot);
+      const visible = slot <= 1 || previousSelected;
+      select.closest('label').hidden = !visible;
+      previousSelected = visible && Boolean(select.value);
+    });
+  }
+}
+
+function getTeamLineup(teamId) {
+  return teamRosterSelects.filter(select => select.dataset.team === teamId).map(select => select.value).filter(Boolean);
+}
+
+function updateTeamViewLabels() {
+  const visible = document.body.classList.contains('watermark-mode') && gameMode === 'team-battles';
+  teamViewLabels.hidden = !visible || (!teamOneViewName && !teamTwoViewName);
+  const renderTeamLabel = (element, teamId, teamName, colorInput) => {
+    element.replaceChildren();
+    element.hidden = !visible || !teamName;
+    if (element.hidden) return;
+    const heading = document.createElement('div');
+    heading.className = 'team-view-name';
+    heading.textContent = teamName;
+    heading.style.color = colorInput.value || '#ffffff';
+    const members = document.createElement('div');
+    members.className = `team-view-members ${teamId}`;
+    const currentProfile = squares[teamId === 'team1' ? 1 : 0];
+    const currentId = currentProfile && currentProfile.health > 0
+      ? Object.keys(guyProfiles).find(id => guyProfiles[id] === currentProfile)
+      : gameMode === 'team-battles' ? teamBattleLineups[teamId]?.[teamBattlePositions[teamId]] ?? null : null;
+    const ids = getTeamLineup(teamId);
+    ids.forEach(id => {
+      const profile = guyProfiles[id];
+      if (!profile) return;
+      const member = document.createElement('div');
+      member.className = 'team-view-member';
+      if (teamBattleDefeated[teamId].has(id)) member.classList.add('defeated');
+      if (id === currentId) {
+        member.classList.add('current');
+        member.style.setProperty('--team-name-color', colorInput.value || '#ffffff');
+      }
+      const availableIds = Object.keys(guyProfiles);
+      member.textContent = profile.name?.trim() || `Guy ${availableIds.indexOf(id) + 1}`;
+      members.append(member);
+    });
+    element.append(heading, members);
+  };
+  renderTeamLabel(teamOneViewLabel, 'team1', teamOneViewName, viewTeamOneColorInput);
+  renderTeamLabel(teamTwoViewLabel, 'team2', teamTwoViewName, viewTeamTwoColorInput);
+}
+
+teamRosterSelects.forEach(select => select.addEventListener('change', refreshTeamRosterOptions));
+
+function addDamageDealt(attackerIndex, targetIndex, amount) {
+  if (gameMode !== 'time-battles' || !Number.isInteger(attackerIndex) || !squares[attackerIndex] || attackerIndex === targetIndex || !Number.isFinite(amount) || amount <= 0) return;
+  squares[attackerIndex].damageDealt += amount;
+}
+
+function addDamageTaken(targetIndex, amount) {
+  if (gameMode !== 'time-battles' || !Number.isInteger(targetIndex) || !squares[targetIndex] || !Number.isFinite(amount) || amount <= 0) return;
+  squares[targetIndex].damageTaken = (squares[targetIndex].damageTaken || 0) + amount;
+}
+
+function resolveTimeBattle() {
+  if (matchEnded || gameMode !== 'time-battles') return;
+  let winnerIndex;
+  if (squares[0].damageDealt === squares[1].damageDealt) {
+    winnerIndex = squares[0].health >= squares[1].health ? 0 : 1;
+  } else {
+    winnerIndex = squares[0].damageDealt > squares[1].damageDealt ? 0 : 1;
+  }
+  squares[1 - winnerIndex].health = 0;
+  playWinnerSoundIfNeeded();
+}
+
+timeBattleDurationInput.addEventListener('input', () => {
+  const value = timeBattleDurationInput.valueAsNumber;
+  if (!Number.isFinite(value)) return;
+  timeBattleDuration = Math.max(0.1, Math.min(3600, value));
+  if (!gameModeSelect.disabled) timeBattleRemaining = timeBattleDuration;
+  updateTimeBattleDisplay();
+});
+timeBattleRedThresholdInput.addEventListener('input', () => {
+  const value = timeBattleRedThresholdInput.valueAsNumber;
+  if (!Number.isFinite(value)) return;
+  timeBattleRedThreshold = Math.max(0, Math.min(3600, value));
+  updateTimeBattleDisplay();
+});
+timeBattleReverseLabelsInput.addEventListener('change', updateHealthIcons);
+showdownTimerEnabledInput.addEventListener('change', () => {
+  showdownTimerEnabled = showdownTimerEnabledInput.checked;
+  updateGameModeUI();
+});
+
+gameModeSelect.addEventListener('change', () => {
+  if (isRunning || matchEnded) return;
+  gameMode = gameModeSelect.value;
+  restoreDefaultSquareSlots();
+  timeBattleRemaining = timeBattleDuration;
+  showdownElapsed = 0;
+  squares.forEach(square => { square.damageDealt = 0; square.damageTaken = 0; });
+  updateGameModeUI();
+});
+
+function createGuyCosmeticPanel(guyId, profile) {
+  const section = document.createElement('section');
+  section.className = 'guy-category';
+  section.id = guyId;
+  section.hidden = true;
+  section.innerHTML = `
+    <h3>Idle Sprite</h3>
+    <div class="sprite-upload-row">
+      <div class="sprite-upload-control"><input id="${guyId}-upload" type="file" accept="image/png,image/jpeg,image/gif" /><label class="upload-button" for="${guyId}-upload">Insert Image</label></div>
+      <img id="${guyId}-preview" class="sprite-upload-preview" alt="Idle sprite preview" hidden />
+    </div>
+    <label class="hitbox-toggle"><input id="${guyId}-eye-contact" type="checkbox" checked />Flip for enemy eye contact</label>
+    <label id="${guyId}-eye-contact-reverse-setting" class="hitbox-toggle"><input id="${guyId}-eye-contact-reverse" type="checkbox" />Reverse</label>
+    <label class="hitbox-toggle"><input id="${guyId}-eye-contact-hitbox" type="checkbox" />Affects hitbox</label>
+    <h3 class="sprite-setting-title">Win Sprite</h3>
+    <div class="sprite-upload-row">
+      <div class="sprite-upload-control"><input id="${guyId}-win-upload" type="file" accept="image/png,image/jpeg,image/gif" /><label class="upload-button" for="${guyId}-win-upload">Insert Image</label></div>
+      <img id="${guyId}-win-preview" class="sprite-upload-preview" alt="Win sprite preview" hidden />
+    </div>
+    <label class="hitbox-toggle"><input id="${guyId}-hitbox" type="checkbox" />Hitbox matches image</label>
+    <label class="sprite-number-setting">Rotate Speed<input id="${guyId}-rotate-speed" type="number" min="-3600" max="3600" step="1" value="0" /></label>
+    <label class="sprite-number-setting">Corner Padding<input id="${guyId}-corner-padding" type="number" min="0" max="120" step="1" value="0" /></label>`;
+  const theme = cosmeticPage.querySelector('.theme-setting');
+  cosmeticPage.insertBefore(section, theme);
+  enableImageDropOnPickers();
+  connectSpriteImageUpload(section.querySelector(`#${guyId}-upload`), profile, 'image', section.querySelector(`#${guyId}-preview`));
+  connectSpriteImageUpload(section.querySelector(`#${guyId}-win-upload`), profile, 'winImage', section.querySelector(`#${guyId}-win-preview`));
+  const eyeContact = section.querySelector(`#${guyId}-eye-contact`);
+  connectEyeContactSettings(eyeContact, section.querySelector(`#${guyId}-eye-contact-reverse`), section.querySelector(`#${guyId}-eye-contact-hitbox`), section.querySelector(`#${guyId}-eye-contact-reverse-setting`), profile);
+  section.querySelector(`#${guyId}-hitbox`).addEventListener('change', event => { profile.hitboxMatchesPng = event.target.checked; });
+  connectRotateSpeed(section.querySelector(`#${guyId}-rotate-speed`), profile);
+  connectCornerPadding(section.querySelector(`#${guyId}-corner-padding`), profile);
+  return section;
+}
+
+function createGuyStatsPanel(guyId) {
+  const panel = document.createElement('div');
+  panel.className = 'guy-stats';
+  panel.id = `${guyId}-stats`;
+  panel.hidden = true;
+  panel.innerHTML = `
+    <label>Name<input type="text" maxlength="40" data-stat="name" /></label>
+    <label>Health<input type="number" min="0" max="9999" step="1" placeholder="1000" data-stat="health" /></label>
+    <label>Speed<input type="number" min="1" max="1000" step="1" placeholder="246" data-stat="speed" /></label>
+    <label>Size<input type="number" min="16" max="240" step="1" placeholder="100" data-stat="size" /></label>`;
+  statisticsPage.append(panel);
+  return panel;
+}
+
+addNewGuyButton.addEventListener('click', () => {
+  if (gameModeSelect.disabled || Object.keys(guyProfiles).length >= 15) return;
+  const number = Object.keys(guyProfiles).length + 1;
+  const guyId = guyIdForNumber(number);
+  const profile = createGuyProfile(number);
+  guyProfiles[guyId] = profile;
+  const option = new Option(profile.name, guyId);
+  option.id = `${guyId}-option`;
+  categorySelect.add(option);
+  const cosmeticPanel = createGuyCosmeticPanel(guyId, profile);
+  const statsPanel = number === 3 ? guyThreeStats : createGuyStatsPanel(guyId);
+  statsPanel.id = `${guyId}-stats`;
+  statsPanel.hidden = false;
+  cosmeticPanel.hidden = true;
+  connectStats(statsPanel, profile);
+  movesByGuy[guyId] ??= [];
+  moveStackSettings[guyId] ??= { stackMoves: true, selfStack: false };
+  activeMoveTimelines[guyId] ??= new Map();
+  globalVariablesByGuy[guyId] ??= new Map();
+  refreshTeamRosterOptions();
+  categorySelect.value = guyId;
+  editorCategorySelect.value = 'statistics';
+  updateEditorView();
+  renderMoves();
+  updateHitboxPreview();
+  updateVisualPreview();
+  updateGameModeUI();
+});
+refreshTeamRosterOptions();
+updateGameModeUI();
 
 function setStartMotion(square, horizontalDirection) {
   const verticalLimit = Math.min(150, square.speed * 0.8);
@@ -496,7 +808,22 @@ function setStartMotion(square, horizontalDirection) {
 startButton.addEventListener('click', () => {
   if (matchEnded) return;
   clickConditionAvailableAt = performance.now() + 100;
+  const startingFreshMatch = needsStartMotion;
+  if (startingFreshMatch) {
+    timeBattleRemaining = timeBattleDuration;
+    showdownElapsed = 0;
+    squares.forEach(square => { square.damageDealt = 0; square.damageTaken = 0; });
+    updateGameModeUI();
+  }
+  gameModeSelect.disabled = true;
+  updateGameModeUI();
   if (needsStartMotion) {
+    restoreDefaultSquareSlots();
+    if (gameMode === 'team-battles' && !prepareTeamBattle()) {
+      gameModeSelect.disabled = false;
+      updateGameModeUI();
+      return;
+    }
     positionSquaresAtStart();
     setStartMotion(squares[1], 1);
     setStartMotion(squares[0], -1);
@@ -504,29 +831,45 @@ startButton.addEventListener('click', () => {
     needsStartMotion = false;
   }
   isRunning = true;
+  updateTimeBattleDisplay();
+  if (themeAudio.src) {
+    if (startingFreshMatch) themeAudio.currentTime = 0;
+    themeAudio.play().catch(error => console.warn('Theme audio could not play:', error));
+  }
   startButton.disabled = true;
   pauseButton.disabled = false;
 });
 
 pauseButton.addEventListener('click', () => {
   isRunning = false;
+  updateTimeBattleDisplay();
+  themeAudio.pause();
   stopAllSounds();
   startButton.disabled = false;
   pauseButton.disabled = true;
 });
 
 restartButton.addEventListener('click', () => {
+  themeAudio.pause();
+  if (themeAudio.readyState > 0) themeAudio.currentTime = 0;
   stopAllSounds();
   if (activeMovePreview) {
     cancelActiveMovePreview();
     return;
   }
+  cancelPendingTeamEntry();
   clearTimeout(winSpriteTimer);
   winSpriteTimer = null;
+  restoreDefaultSquareSlots();
   matchGeneration++;
   matchEnded = false;
   showWinSprites = false;
   isRunning = false;
+  timeBattleRemaining = timeBattleDuration;
+  showdownElapsed = 0;
+  gameModeSelect.disabled = false;
+  squares.forEach(square => { square.damageDealt = 0; square.damageTaken = 0; });
+  updateGameModeUI();
   startButton.disabled = false;
   pauseButton.disabled = true;
   damagePopups.length = 0;
@@ -566,6 +909,10 @@ restartButton.addEventListener('click', () => {
     square.spriteReplace = null;
   }
   winnerSoundPlayed = false;
+  lastKillSoundSquare = null;
+  teamBattleDefeated.team1.clear();
+  teamBattleDefeated.team2.clear();
+  updateTeamViewLabels();
   winnerAudio.pause();
   if (winnerAudio.readyState > 0) winnerAudio.currentTime = 0;
   resetMoveTimers();
@@ -586,13 +933,20 @@ watermarkButton.addEventListener('click', () => {
     arenaLabelText = '';
     arenaLabel.textContent = '';
     arenaLabel.hidden = true;
+    teamOneViewName = '';
+    teamTwoViewName = '';
     document.body.classList.remove('watermark-mode');
+    teamViewLabels.hidden = true;
     restartButton.click();
     return;
   }
   watermarkTextInput.value = '';
+  const isTeamBattle = gameMode === 'team-battles';
+  viewLabelSettingLabel.hidden = isTeamBattle;
+  labelTextInput.hidden = isTeamBattle;
+  viewTeamNameSettings.hidden = !isTeamBattle;
   watermarkModal.hidden = false;
-  watermarkTextInput.focus();
+  (isTeamBattle ? viewTeamOneNameInput : watermarkTextInput).focus();
 });
 
 backgroundColorButton.addEventListener('click', () => {
@@ -706,29 +1060,6 @@ arenaResizeHandle.addEventListener('pointermove', event => {
   resize();
 });
 
-canvas.addEventListener('pointerdown', event => {
-  if (!isArenaResizeMode) return;
-  const rect = canvas.getBoundingClientRect();
-  const pointerX = event.clientX - rect.left;
-  const pointerY = event.clientY - rect.top;
-  let nearestIndex = null;
-  let nearestDistance = Infinity;
-  squares.forEach((square, index) => {
-    const dx = pointerX - square.x;
-    const dy = pointerY - square.y;
-    const distance = Math.hypot(dx, dy);
-    if (distance <= Math.max(40, square.size * 0.65) && distance < nearestDistance) {
-      nearestIndex = index;
-      nearestDistance = distance;
-    }
-  });
-  if (nearestIndex === null) return;
-  event.preventDefault();
-  draggingGuyIndex = nearestIndex;
-  draggingGuyPointerId = event.pointerId;
-  canvas.setPointerCapture(event.pointerId);
-});
-
 canvas.addEventListener('pointermove', event => {
   if (!isArenaResizeMode || draggingGuyPointerId !== event.pointerId || draggingGuyIndex === null) return;
   const rect = canvas.getBoundingClientRect();
@@ -769,12 +1100,16 @@ watermarkForm.addEventListener('submit', event => {
   const selectedYoutubeSpeed = youtubeSpeedInput.value;
   const initialSpeed = selectedYoutubeSpeed === '2x' ? 2 : selectedYoutubeSpeed === '3x' ? 3 : selectedYoutubeSpeed === '5x' ? 5 : 1;
   setGameSpeed(initialSpeed);
-  arenaLabelText = labelTextInput.value.trim();
+  const teamView = gameMode === 'team-battles';
+  teamOneViewName = teamView ? viewTeamOneNameInput.value.trim() : '';
+  teamTwoViewName = teamView ? viewTeamTwoNameInput.value.trim() : '';
+  arenaLabelText = teamView ? '' : labelTextInput.value.trim();
   arenaLabel.textContent = arenaLabelText;
   closeWatermarkPrompt();
   restartButton.click();
   document.body.classList.add('watermark-mode');
   arenaLabel.hidden = !arenaLabelText;
+  updateTeamViewLabels();
   clearTimeout(youtubeStartTimer);
   youtubeStartTimer = setTimeout(() => {
     youtubeStartTimer = null;
@@ -798,8 +1133,10 @@ watermarkModal.addEventListener('click', event => {
 
 function enableImageDropOnPickers() {
   document.querySelectorAll('.upload-button[for], .file-picker-button[for]').forEach(target => {
+    if (target.dataset.imageDropEnabled) return;
     const input = document.getElementById(target.htmlFor);
     if (!(input instanceof HTMLInputElement) || input.type !== 'file' || !input.accept.toLowerCase().includes('image')) return;
+    target.dataset.imageDropEnabled = 'true';
 
     const clearHighlight = () => target.classList.remove('image-drop-active');
     target.addEventListener('dragenter', event => {
@@ -870,6 +1207,16 @@ connectSpriteImageUpload(guyTwoUpload, squares[0], 'image', guyTwoPreview);
 connectSpriteImageUpload(guyOneWinUpload, squares[1], 'winImage', guyOneWinPreview);
 connectSpriteImageUpload(guyTwoWinUpload, squares[0], 'winImage', guyTwoWinPreview);
 
+themeAudioUpload.addEventListener('change', () => {
+  const file = themeAudioUpload.files?.[0];
+  if (!file) return;
+  if (themeAudioURL) URL.revokeObjectURL(themeAudioURL);
+  themeAudioURL = URL.createObjectURL(file);
+  themeAudio.src = themeAudioURL;
+  themeAudio.load();
+  themeAudioName.textContent = file.name;
+});
+
 async function decodeAnimatedGif(file) {
   if (file.type !== 'image/gif' || typeof ImageDecoder === 'undefined') return [];
   let decoder;
@@ -935,10 +1282,22 @@ function getImageAlphaBounds(image) {
   }
 }
 
+function updateGuySelectorLabel(square) {
+  const entry = Object.entries(guyProfiles).find(([, profile]) => profile === square);
+  if (!entry) return;
+  const [id] = entry;
+  const fallback = `Guy ${Object.keys(guyProfiles).indexOf(id) + 1}`;
+  const option = [...categorySelect.options].find(item => item.value === id);
+  if (option) option.textContent = square.name?.trim() || fallback;
+  refreshTeamRosterOptions();
+}
+
 function connectStats(panel, square) {
   panel.querySelectorAll('[data-stat]').forEach(input => {
+    if (input.dataset.stat === 'name') input.value = square.name ?? '';
     const updateValue = commit => {
       const stat = input.dataset.stat;
+      if (stat === 'name') { square.name = input.value; updateGuySelectorLabel(square); return; }
       const defaultValue = stat === 'health' ? square.defaultHealth
         : stat === 'speed' ? square.defaultSpeed
           : square.defaultSize;
@@ -985,8 +1344,8 @@ function connectStats(panel, square) {
   });
 }
 
-connectStats(guyOneStats, squares[1]);
-connectStats(guyTwoStats, squares[0]);
+connectStats(guyOneStats, guyProfiles['guy-one']);
+connectStats(guyTwoStats, guyProfiles['guy-two']);
 
 function updateConditionSidePicker(picker, summary) {
   const selected = [...picker.querySelectorAll('input:checked')].map(input => input.value);
@@ -1093,7 +1452,7 @@ moveConditionSelect.addEventListener('change', updateMoveCondition);
 updateMoveCondition();
 
 function getSelectedGuySquare() {
-  return categorySelect.value === 'guy-one' ? squares[1] : squares[0];
+  return guyProfiles[categorySelect.value] ?? guyProfiles['guy-two'];
 }
 
 function setMovePreviewArena(preview, square, unit) {
@@ -3285,6 +3644,8 @@ async function exportSelectedGuy() {
       maxHealth: square.maxHealth,
       speed: square.defaultSpeed,
       size: square.defaultSize,
+      name: square.name ?? '',
+      team: square.team ?? 'none',
       rotateSpeed: square.rotateSpeed,
       cornerPadding: square.cornerPadding,
       hitboxMatchesPng: square.hitboxMatchesPng,
@@ -3326,29 +3687,34 @@ async function importSelectedGuy(file) {
   square.startPositionY = null;
   square.vx = square.startDirectionX * square.speed;
   square.vy = square.startDirectionY * square.speed;
-  const guyIndex = guyId === 'guy-one' ? 'guy-one' : 'guy-two';
-  const spriteSettings = document.querySelector('#' + guyIndex);
+  square.team = data.team ?? 'none';
+  square.name = typeof data.name === 'string' ? data.name : (square.name ?? '');
+  updateGuySelectorLabel(square);
   const idleImage = await imageFromDataUrl(data.image);
   const winImage = await imageFromDataUrl(data.winImage);
   square.image = idleImage;
   square.imageBounds = idleImage?.imageBounds ?? null;
   square.winImage = winImage;
   square.winImageBounds = winImage?.imageBounds ?? null;
-  const idlePreview = spriteSettings.querySelector('.sprite-upload-preview');
-  const winPreview = spriteSettings.querySelector('.sprite-setting-title + .sprite-upload-row .sprite-upload-preview');
-  if (idleImage) { idlePreview.src = idleImage.src; idlePreview.hidden = false; } else { idlePreview.removeAttribute('src'); idlePreview.hidden = true; }
-  if (winImage) { winPreview.src = winImage.src; winPreview.hidden = false; } else { winPreview.removeAttribute('src'); winPreview.hidden = true; }
-  spriteSettings.querySelector('#' + guyId + '-hitbox').checked = square.hitboxMatchesPng;
-  spriteSettings.querySelector('#' + guyId + '-rotate-speed').value = square.rotateSpeed;
-  spriteSettings.querySelector('#' + guyId + '-corner-padding').value = square.cornerPadding;
-  spriteSettings.querySelector('#' + guyId + '-eye-contact').checked = square.flipForEnemyEyeContact;
-  spriteSettings.querySelector('#' + guyId + '-eye-contact-reverse').checked = square.reverseEyeContactFlip;
-  spriteSettings.querySelector('#' + guyId + '-eye-contact-hitbox').checked = square.eyeContactFlipAffectsHitbox;
-  spriteSettings.querySelector('#' + guyId + '-eye-contact').dispatchEvent(new Event('change', { bubbles: true }));
+  {
+    const spriteSettings = document.querySelector('#' + guyId);
+    const idlePreview = spriteSettings.querySelector('.sprite-upload-preview');
+    const winPreview = spriteSettings.querySelector('.sprite-setting-title + .sprite-upload-row .sprite-upload-preview');
+    if (idleImage) { idlePreview.src = idleImage.src; idlePreview.hidden = false; } else { idlePreview.removeAttribute('src'); idlePreview.hidden = true; }
+    if (winImage) { winPreview.src = winImage.src; winPreview.hidden = false; } else { winPreview.removeAttribute('src'); winPreview.hidden = true; }
+    spriteSettings.querySelector('#' + guyId + '-hitbox').checked = square.hitboxMatchesPng;
+    spriteSettings.querySelector('#' + guyId + '-rotate-speed').value = square.rotateSpeed;
+    spriteSettings.querySelector('#' + guyId + '-corner-padding').value = square.cornerPadding;
+    spriteSettings.querySelector('#' + guyId + '-eye-contact').checked = square.flipForEnemyEyeContact;
+    spriteSettings.querySelector('#' + guyId + '-eye-contact-reverse').checked = square.reverseEyeContactFlip;
+    spriteSettings.querySelector('#' + guyId + '-eye-contact-hitbox').checked = square.eyeContactFlipAffectsHitbox;
+    spriteSettings.querySelector('#' + guyId + '-eye-contact').dispatchEvent(new Event('change', { bubbles: true }));
+  }
   const statsPanel = document.querySelector('#' + guyId + '-stats');
   statsPanel.querySelector('[data-stat="health"]').value = square.maxHealth;
   statsPanel.querySelector('[data-stat="speed"]').value = square.defaultSpeed;
   statsPanel.querySelector('[data-stat="size"]').value = square.defaultSize;
+  statsPanel.querySelector('[data-stat="name"]').value = square.name;
   moveStackSettings[guyId] = { stackMoves: data.stackMoves !== false, selfStack: Boolean(data.selfStack) };
   globalVariablesByGuy[guyId].clear();
   const loadedMoves = data.moves ?? [];
@@ -3656,7 +4022,8 @@ function addDamagePopup(targetIndex, x, y, amount) {
 }
 
 function getGuyId(index) {
-  return index === 1 ? 'guy-one' : 'guy-two';
+  const profile = squares[index];
+  return Object.keys(guyProfiles).find(id => guyProfiles[id] === profile) ?? (index === 1 ? 'guy-one' : 'guy-two');
 }
 
 function combatStateActive(square, type) {
@@ -4654,17 +5021,39 @@ function playWallBounceSound() {
 }
 
 function playWinnerSoundIfNeeded() {
-  if (winnerSoundPlayed || !squares.some(square => square.health <= 0)) return;
+  const deadIndex = squares.findIndex(square => square.health <= 0);
+  if (deadIndex < 0) return;
+  const deadSquare = squares[deadIndex];
+  if (deadSquare !== lastKillSoundSquare) {
+    lastKillSoundSquare = deadSquare;
+    if (gameMode === 'team-battles') {
+      const teamId = deadIndex === 1 ? 'team1' : 'team2';
+      const deadGuyId = Object.keys(guyProfiles).find(id => guyProfiles[id] === deadSquare);
+      if (deadGuyId) teamBattleDefeated[teamId].add(deadGuyId);
+    }
+    const killSound = winnerAudio.cloneNode();
+    killSound.currentTime = 0;
+    killSound.play().catch(() => {});
+  }
+  if (winnerSoundPlayed) return;
+  if (gameMode === 'team-battles' && spawnNextTeamMember(deadIndex)) {
+    updateTeamViewLabels();
+    return;
+  }
+  if (gameMode === 'team-battles') updateTeamViewLabels();
   winnerSoundPlayed = true;
-  winnerAudio.play().catch(() => {});
   finishMatch();
 }
 
 function finishMatch() {
   if (matchEnded) return;
   matchEnded = true;
+  cancelPendingTeamEntry();
+  gameModeSelect.disabled = true;
+  themeAudio.pause();
   matchGeneration++;
   isRunning = false;
+  updateTimeBattleDisplay();
   startButton.disabled = true;
   pauseButton.disabled = true;
   damagePopups.length = 0;
@@ -4868,6 +5257,101 @@ function resize() {
   }
 }
 
+function restoreDefaultSquareSlots() {
+  squares[0] = guyProfiles['guy-two'];
+  squares[1] = guyProfiles['guy-one'];
+}
+
+function resetProfileForTeamEntry(profile) {
+  profile.maxHealth = profile.defaultHealth;
+  profile.health = profile.maxHealth;
+  profile.speed = profile.defaultSpeed;
+  profile.size = profile.defaultSize;
+  profile.vx = profile.startDirectionX * profile.speed;
+  profile.vy = profile.startDirectionY * profile.speed;
+  profile.rotation = 0;
+  profile.stateEffects = {};
+  profile.flashUntil = 0;
+  profile.spriteReplace = null;
+  profile.damageDealt = 0;
+  profile.damageTaken = 0;
+  profile.startPositionX = null;
+  profile.startPositionY = null;
+  profile.enteringFromOutside = false;
+}
+
+function prepareTeamBattle() {
+  const team1 = getTeamLineup('team1');
+  const team2 = getTeamLineup('team2');
+  if (!team1.length || !team2.length) return false;
+  teamBattleLineups = { team1, team2 };
+  teamBattlePositions = { team1: 0, team2: 0 };
+  teamBattleDefeated = { team1: new Set(), team2: new Set() };
+  const fighter1 = guyProfiles[team1[0]];
+  const fighter2 = guyProfiles[team2[0]];
+  if (!fighter1 || !fighter2 || fighter1 === fighter2) return false;
+  resetProfileForTeamEntry(fighter1);
+  resetProfileForTeamEntry(fighter2);
+  squares[1] = fighter1;
+  squares[0] = fighter2;
+  updateTeamViewLabels();
+  return true;
+}
+
+function cancelPendingTeamEntry() {
+  if (teamEntryTimer !== null) clearTimeout(teamEntryTimer);
+  teamEntryTimer = null;
+  teamEntryPending = false;
+}
+
+function spawnNextTeamMember(deadIndex) {
+  if (teamEntryPending) return true;
+  const teamId = deadIndex === 1 ? 'team1' : 'team2';
+  const lineup = teamBattleLineups[teamId] ?? [];
+  const enemy = squares[1 - deadIndex];
+  for (let nextIndex = teamBattlePositions[teamId] + 1; nextIndex < lineup.length; nextIndex++) {
+    const profile = guyProfiles[lineup[nextIndex]];
+    teamBattlePositions[teamId] = nextIndex;
+    if (!profile || profile === enemy || profile === squares[deadIndex]) continue;
+    resetProfileForTeamEntry(profile);
+    teamEntryPending = true;
+    const entryMatchGeneration = matchGeneration;
+    teamEntryTimer = setTimeout(() => {
+      teamEntryTimer = null;
+      teamEntryPending = false;
+      if (entryMatchGeneration !== matchGeneration || matchEnded || gameMode !== 'team-battles') return;
+      const currentEnemy = squares[1 - deadIndex];
+      const half = profile.size / 2;
+      const side = Math.floor(Math.random() * 4);
+      if (side === 0) {
+        profile.x = -half;
+        profile.y = half + Math.random() * Math.max(0, height - half * 2);
+      } else if (side === 1) {
+        profile.x = width + half;
+        profile.y = half + Math.random() * Math.max(0, height - half * 2);
+      } else if (side === 2) {
+        profile.x = half + Math.random() * Math.max(0, width - half * 2);
+        profile.y = -half;
+      } else {
+        profile.x = half + Math.random() * Math.max(0, width - half * 2);
+        profile.y = height + half;
+      }
+      const dx = currentEnemy.x - profile.x;
+      const dy = currentEnemy.y - profile.y;
+      const distance = Math.hypot(dx, dy) || 1;
+      profile.vx = dx / distance * profile.speed;
+      profile.vy = dy / distance * profile.speed;
+      profile.startDirectionX = profile.vx / profile.speed || 0;
+      profile.startDirectionY = profile.vy / profile.speed || 0;
+      profile.enteringFromOutside = true;
+      squares[deadIndex] = profile;
+      updateTeamViewLabels();
+    }, 400);
+    return true;
+  }
+  return false;
+}
+
 function positionSquaresAtStart() {
   const centerX = width / 2;
   const centerY = height / 2;
@@ -4882,6 +5366,7 @@ function positionSquaresAtStart() {
     const half = square.size / 2;
     square.x = Math.max(half, Math.min(width - half, square.startPositionX * width));
     square.y = Math.max(half, Math.min(height - half, square.startPositionY * height));
+    square.enteringFromOutside = false;
   }
 }
 
@@ -5114,10 +5599,12 @@ function updateActiveHitboxes() {
       }
       continue;
     }
-    const damageTaken = combatStateActive(target, 'IFrames') ? 0 : Math.min(target.health, damage);
+    const damageTaken = combatStateActive(target, 'IFrames') ? 0 : gameMode === 'time-battles' ? damage : Math.min(target.health, damage);
     if (damageTaken > 0) {
+      addDamageTaken(hitbox.targetIndex, damageTaken);
+      addDamageDealt(hitbox.attackerIndex, hitbox.targetIndex, damageTaken);
       runMovesForCondition(hitbox.targetIndex, 'damaged', getDamageSourceSide(hitbox.attackerIndex, hitbox.targetIndex));
-      target.health = Math.max(0, target.health - damageTaken);
+      target.health = Math.max(gameMode === 'time-battles' ? 1 : 0, target.health - damageTaken);
       playWinnerSoundIfNeeded();
       if (matchEnded) break;
       addDamagePopup(hitbox.targetIndex, target.x + (Math.random() * 24 - 12), target.y - target.size / 2 - 18, damageTaken);
@@ -5140,10 +5627,12 @@ function projectileTouchesSquare(projectile, square, opponent) {
 function applyProjectileBounceDamage(projectile, targetIndex, target, amount = projectile.bounceDamage) {
   const damage = Math.max(0, Number(amount) || 0);
   if (!damage || target.health <= 0) return;
-  const damageTaken = projectile.preview ? damage : combatStateActive(target, 'IFrames') ? 0 : Math.min(target.health, damage);
+  const damageTaken = projectile.preview ? damage : combatStateActive(target, 'IFrames') ? 0 : gameMode === 'time-battles' ? damage : Math.min(target.health, damage);
   if (!projectile.preview && damageTaken > 0) {
+    addDamageTaken(targetIndex, damageTaken);
+    addDamageDealt(projectile.attackerIndex, targetIndex, damageTaken);
     runMovesForCondition(targetIndex, 'damaged', getDamageSourceSide(projectile.attackerIndex, targetIndex));
-    target.health = Math.max(0, target.health - damageTaken);
+    target.health = Math.max(gameMode === 'time-battles' ? 1 : 0, target.health - damageTaken);
     playWinnerSoundIfNeeded();
     if (matchEnded) return;
   }
@@ -5390,10 +5879,14 @@ function updateActiveProjectiles(dt) {
         projectile.lastHitAt = simulationTime;
         if (projectile.soundURL) playTransientSound(projectile.soundURL);
         if (projectile.damage > 0) {
-          const damageTaken = projectile.preview ? projectile.damage : combatStateActive(target, 'IFrames') ? 0 : Math.min(target.health, projectile.damage);
+          const damageTaken = projectile.preview ? projectile.damage : combatStateActive(target, 'IFrames') ? 0 : gameMode === 'time-battles' ? projectile.damage : Math.min(target.health, projectile.damage);
           if (!projectile.preview) {
+            if (damageTaken > 0) {
+              addDamageTaken(projectile.targetIndex, damageTaken);
+              addDamageDealt(projectile.attackerIndex, projectile.targetIndex, damageTaken);
+            }
             if (damageTaken > 0) runMovesForCondition(projectile.targetIndex, 'damaged', getDamageSourceSide(projectile.attackerIndex, projectile.targetIndex));
-            target.health = Math.max(0, target.health - damageTaken);
+            target.health = Math.max(gameMode === 'time-battles' ? 1 : 0, target.health - damageTaken);
             playWinnerSoundIfNeeded();
             if (matchEnded) {
               projectile.complete?.(false);
@@ -5438,10 +5931,11 @@ function updateActiveProjectiles(dt) {
       if (projectile.hitSelfWhenStuck && ownerHitReady && projectile.damage > 0) {
         projectile.ownerLastHitAt = simulationTime;
         if (projectile.soundURL) playTransientSound(projectile.soundURL);
-        const damageTaken = projectile.preview ? projectile.damage : combatStateActive(spawnedBy, 'IFrames') ? 0 : Math.min(spawnedBy.health, projectile.damage);
+        const damageTaken = projectile.preview ? projectile.damage : combatStateActive(spawnedBy, 'IFrames') ? 0 : gameMode === 'time-battles' ? projectile.damage : Math.min(spawnedBy.health, projectile.damage);
         if (!projectile.preview && damageTaken > 0) {
+          addDamageTaken(spawnedByIndex, damageTaken);
           runMovesForCondition(spawnedByIndex, 'damaged', getDamageSourceSide(projectile.targetIndex, spawnedByIndex));
-          spawnedBy.health = Math.max(0, spawnedBy.health - damageTaken);
+          spawnedBy.health = Math.max(gameMode === 'time-battles' ? 1 : 0, spawnedBy.health - damageTaken);
           playWinnerSoundIfNeeded();
         }
         if (damageTaken > 0) addDamagePopup(spawnedByIndex, spawnedBy.x + (Math.random() * 24 - 12), spawnedBy.y - spawnedBy.size / 2 - 18, damageTaken);
@@ -5795,8 +6289,41 @@ function updateHealthIcons() {
   squares.forEach((square, index) => {
     const icon = healthIcons[index];
     icon.hidden = square.health <= 0;
+    const score = icon.querySelector('.damage-score-value');
+    if (score) {
+      const shownDamage = timeBattleReverseLabelsInput.checked ? (square.damageTaken || 0) : square.damageDealt;
+      score.textContent = String(Math.round(shownDamage));
+      const intensity = gameMode === 'time-battles' ? Math.max(0, shownDamage / 1000) : 0;
+      let hue;
+      let saturation;
+      let lightness;
+      if (intensity < 0.2) {
+        const progress = intensity / 0.2;
+        hue = 55;
+        saturation = progress * 100;
+        lightness = 100 - progress * 50;
+      } else if (intensity < 0.45) {
+        const progress = (intensity - 0.2) / 0.25;
+        hue = 55 - progress * 25;
+        saturation = 100;
+        lightness = 50;
+      } else if (intensity < 1) {
+        const progress = (intensity - 0.45) / 0.55;
+        hue = 30 * (1 - progress);
+        saturation = 100;
+        lightness = 50;
+      } else {
+        const progress = Math.min(1, (intensity - 1) / 2);
+        hue = 0;
+        saturation = 100;
+        lightness = 50 - progress * 27;
+      }
+      score.style.color = `hsl(${Math.round(hue)} ${Math.round(saturation)}% ${Math.round(lightness)}%)`;
+    }
     icon.style.left = `${square.x}px`;
-    icon.style.top = `${square.y - square.size / 2 - 72 - 14}px`;
+    const labelHeight = gameMode === 'time-battles' ? 56 : 72;
+    const gap = gameMode === 'time-battles' ? 8 : 14;
+    icon.style.top = `${square.y - square.size / 2 - labelHeight - gap}px`;
     icon.querySelector('text').textContent = String(square.health);
     const fill = icon.querySelector('.health-fill');
     const fraction = square.maxHealth > 0 ? Math.max(0, Math.min(1, square.health / square.maxHealth)) : 0;
@@ -6039,14 +6566,15 @@ function draw(time) {
 
       const left = square.x + hitbox.left;
       const right = left + hitbox.width;
-      if (left < 0 || right > width) {
+      const top = square.y + hitbox.top;
+      const bottom = top + hitbox.height;
+      if (square.enteringFromOutside && left >= 0 && right <= width && top >= 0 && bottom <= height) square.enteringFromOutside = false;
+      if (!square.enteringFromOutside && (left < 0 || right > width)) {
         square.x = Math.max(-hitbox.left, Math.min(width - hitbox.left - hitbox.width, square.x));
         square.vx *= -1;
         hitWallX = true;
       }
-      const top = square.y + hitbox.top;
-      const bottom = top + hitbox.height;
-      if (top < 0 || bottom > height) {
+      if (!square.enteringFromOutside && (top < 0 || bottom > height)) {
         square.y = Math.max(-hitbox.top, Math.min(height - hitbox.top - hitbox.height, square.y));
         square.vy *= -1;
         hitWallY = true;
@@ -6075,6 +6603,17 @@ function draw(time) {
   updateActiveVelocityMoves(dt);
   updateActiveHitboxes();
   updateActiveProjectiles(dt);
+  if (isRunning && gameMode === 'time-battles') {
+    timeBattleRemaining = Math.max(0, timeBattleRemaining - dt);
+    updateTimeBattleDisplay();
+    if (timeBattleRemaining <= 0) {
+      resolveTimeBattle();
+      updateTimeBattleDisplay();
+    }
+  } else if (isRunning && gameMode === 'showdown' && showdownTimerEnabled) {
+    showdownElapsed += dt;
+    updateTimeBattleDisplay();
+  }
 
   for (let index = 0; index < squares.length; index++) {
     const square = squares[index];
